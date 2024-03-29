@@ -37,7 +37,7 @@ export class User {
   phone: number;
 
   @Column({ type: 'int', unique: false, nullable: true })
-  local?: number;
+  local_cert?: number;
 
   @IsEnum(Role)
   @Column({ type: 'enum', enum: Role, default: Role.User })
@@ -52,14 +52,14 @@ export class User {
   @UpdateDateColumn({ type: 'timestamp', nullable: false })
   updated_at: Date;
 
-  @Column({ nullable: true }) // Refresh Token은 로그아웃시 Null 이 되기 때문에 Null값을 허용
-  @Exclude() // 특정 작업을 수행할 때 해당 특정 속성을 무시하도록 ORM 프레임워크에 지시
-  currentHashedRefreshToken?: string;
+  // @Column({ nullable: true }) // Refresh Token은 로그아웃시 Null 이 되기 때문에 Null값을 허용
+  // @Exclude() // 특정 작업을 수행할 때 해당 특정 속성을 무시하도록 ORM 프레임워크에 지시
+  // currentHashedRefreshToken?: string;
 
 // TODO 관계확인하고 주석해제할 것.
-  // @OneToMany(() => , (plans) => plans.user)
-  // plans: Plans[];
-
-  // @OneToMany(() => Locals, (locals) => locals.users)
-  // locals: Locals[];
+//   @OneToMany(() => , (plan) => plan.user)
+//   plan: Plan[];
+// // post
+//   @OneToMany(() => Post, (post) => post.user)
+//   post: Post[];
 }
