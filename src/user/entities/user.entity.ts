@@ -11,6 +11,7 @@ import { Role } from '../types/userRole.type';
 import { IsEmail, IsEnum, IsNumber, IsString } from 'class-validator';
 import { Exclude } from 'class-transformer';
 import { Post } from 'src/post/entities/post.entity';
+import { PostComment } from 'src/post-comment/entities/post-comment.entity';
 
 // @Index('email', ['email'], { unique: true })
 @Entity({
@@ -62,4 +63,7 @@ export class User {
 
   @OneToMany(() => Post, (post) => post.user)
   post: Post[];
+
+  @OneToMany(() => PostComment, (postComment) => postComment.user)
+  postComment: PostComment[];
 }
