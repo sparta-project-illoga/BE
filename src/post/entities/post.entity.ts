@@ -1,3 +1,4 @@
+import { PostComment } from 'src/post-comment/entities/post-comment.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
@@ -5,6 +6,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   //   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -41,8 +43,6 @@ export class Post {
   @JoinColumn()
   user: User;
 
-  //   @OneToMany(() => PostCommnet, (postCommnets) => postCommnets.posts, {
-  //     cascade: true,
-  //   })
-  //   postCommnet: PostCommnet[];
+  @OneToMany(() => PostComment, (postComment) => postComment.user)
+  postComment: PostComment[];
 }
