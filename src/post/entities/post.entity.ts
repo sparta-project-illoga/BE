@@ -26,8 +26,8 @@ export class Post {
   @Column({ type: 'varchar', nullable: false })
   content: string;
 
-  @Column({ type: 'varchar', nullable: false })
-  image: string;
+  @Column({ type: 'varchar', nullable: true })
+  image?: string;
 
   @CreateDateColumn()
   created_at: Date;
@@ -35,7 +35,7 @@ export class Post {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @ManyToOne(() => User, (users) => users.posts, {
+  @ManyToOne(() => User, (user) => user.post, {
     onDelete: 'CASCADE',
   })
   @JoinColumn()
