@@ -10,7 +10,8 @@ import {
 import { Role } from '../types/userRole.type';
 import { IsEmail, IsEnum, IsNumber, IsString } from 'class-validator';
 import { Exclude } from 'class-transformer';
-
+import { Post } from 'src/post/entities/post.entity';
+import { PostComment } from 'src/post-comment/entities/post-comment.entity';
 
 // @Index('email', ['email'], { unique: true })
 @Entity({
@@ -43,8 +44,8 @@ export class User {
   @Column({ type: 'enum', enum: Role, default: Role.User })
   role: Role;
 
-  @Column( {type: 'varchar', nullable: true })
-  image_url?: string
+  @Column({ type: 'varchar', nullable: true })
+  image_url?: string;
 
   @CreateDateColumn({ type: 'timestamp', nullable: false })
   created_at: Date;
@@ -56,10 +57,13 @@ export class User {
   // @Exclude() // 특정 작업을 수행할 때 해당 특정 속성을 무시하도록 ORM 프레임워크에 지시
   // currentHashedRefreshToken?: string;
 
-// TODO 관계확인하고 주석해제할 것.
-//   @OneToMany(() => , (plan) => plan.user)
-//   plan: Plan[];
-// // post
-//   @OneToMany(() => Post, (post) => post.user)
-//   post: Post[];
+  // TODO 관계확인하고 주석해제할 것.
+  //   @OneToMany(() => , (plan) => plan.user)
+  //   plan: Plan[];
+
+  @OneToMany(() => Post, (post) => post.user)
+  post: Post[];
+
+  @OneToMany(() => PostComment, (postComment) => postComment.user)
+  postComment: PostComment[];
 }
