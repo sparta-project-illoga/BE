@@ -4,7 +4,6 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { PlanModule } from './plan/plan.module';
 import { TravelModule } from './travel/travel.module';
-import { CategoryModule } from './category/category.module';
 import { LocalModule } from './local/local.module';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -14,7 +13,10 @@ import { User } from './user/entities/user.entity';
 import { Travel } from './travel/entities/travel.entity';
 import { Plan } from './plan/entities/plan.entity';
 import { Local } from './local/entities/local.entity';
-import { Category } from './category/entities/category.entity';
+import { ScheduleModule } from './schedule/schedule.module';
+import { Schedule } from './schedule/entities/schedule.entity';
+import { Place } from './plan/entities/place.entity';
+
 
 const typeOrmModuleOptions = {
   useFactory: async (
@@ -27,7 +29,7 @@ const typeOrmModuleOptions = {
     host: configService.get('DB_HOST'),
     port: configService.get('DB_PORT'),
     database: configService.get('DB_NAME'),
-    entities: [User, Travel, Plan, Local, Category], // 엔티티는 반드시 여기에 명시!
+    entities: [User, Travel, Plan, Local, Schedule, Place], // 엔티티는 반드시 여기에 명시!
     synchronize: configService.get('DB_SYNC'),
     logging: true,
   }),
@@ -52,8 +54,8 @@ const typeOrmModuleOptions = {
     UserModule,
     PlanModule,
     TravelModule,
-    CategoryModule,
     LocalModule,
+    ScheduleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

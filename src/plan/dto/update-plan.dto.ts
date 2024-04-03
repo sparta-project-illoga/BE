@@ -1,4 +1,8 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreatePlanDto } from './create-plan.dto';
+import { PartialType, PickType } from '@nestjs/mapped-types';
+import { Plan } from '../entities/plan.entity';
+import { IsString } from 'class-validator';
 
-export class UpdatePlanDto extends PartialType(CreatePlanDto) {}
+export class UpdatePlanDto extends PickType(Plan, ["name"]) {
+    @IsString()
+    name: string;
+}
