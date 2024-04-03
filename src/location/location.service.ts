@@ -16,7 +16,7 @@ export class LocationService {
   // 사용자 위치 정보 업데이트
   async updateLocation(
     // userId: number,
-    userID: User, // user연결되면 이걸로 쓰기
+    userId: User, // user연결되면 이걸로 쓰기
     locationData: { latitude: number; longitude: number },
   ) {
     const { latitude, longitude } = locationData;
@@ -36,7 +36,7 @@ export class LocationService {
       console.log('message:', response.data.documents[0]);
 
       const userLocation = await this.locationRepository.findOne({
-        where: { user: { id: userId } },
+        where: { user: userId },
       });
       if (!userLocation) {
         return { message: '사용자 위치정보를 찾을수 없습니다.' };
