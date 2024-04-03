@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>위치정보 가져오기</title>
+  </head>
+  <body>
+    <h1>위치정보 가져오기</h1>
+
+    <button id="getLocationButton">딸깍</button>
+
+    <script>
+      document
+        .getElementById('getLocationButton')
+        .addEventListener('click', () => {
+          getLocation();
+        });
+
+      function getLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(sendLocationToServer);
+        } else {
+          alert('Geolocation을 지원하지 않는 브라우저입니다.');
+        }
+      }
+
+      function sendLocationToServer(position) {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+
+        // 사용할때는 엔드포인트 변경해줄것!
+        fetch('http://localhost:3000/location', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ latitude, longitude }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log('Response from server:', data);
+            alert('위치정보가 서버에 전송되었습니다.');
+          })
+          .catch((error) => {
+            console.error('Error sending location data:', error);
+            alert('위치정보를 전송하는데 실패하였습니다. 다시 시도하세요');
+          });
+      }
+    </script>
+  </body>
+</html>
