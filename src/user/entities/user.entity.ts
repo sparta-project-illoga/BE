@@ -3,7 +3,9 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -12,8 +14,10 @@ import { IsEmail, IsEnum, IsNumber, IsString } from 'class-validator';
 import { Exclude } from 'class-transformer';
 import { Post } from 'src/post/entities/post.entity';
 import { PostComment } from 'src/post-comment/entities/post-comment.entity';
+import { Local } from 'src/local/entities/local.entity';
+import { Location } from 'src/location/entities/location.entity';
 
-// @Index('email', ['email'], { unique: true })
+@Index('email', ['email'], { unique: true })
 @Entity({
   name: 'users',
 })
@@ -37,8 +41,8 @@ export class User {
   @Column({ type: 'int', unique: false, nullable: false })
   phone: number;
 
-  @Column({ type: 'int', unique: false, nullable: true })
-  local_cert?: number;
+  @Column({ type: 'boolean', unique: false, nullable: true, default: false })
+  is_cert?: boolean;
 
   @IsEnum(Role)
   @Column({ type: 'enum', enum: Role, default: Role.User })
@@ -66,4 +70,11 @@ export class User {
 
   @OneToMany(() => PostComment, (postComment) => postComment.user)
   postComment: PostComment[];
+
+  @OneToMany(() => Local, (local) => local.user)
+  local: Local[];
+
+  @OneToOne(() => Location, (location) => location.user )
+  @JoinColumn()
+  location: Location
 }

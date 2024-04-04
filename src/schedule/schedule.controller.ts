@@ -2,8 +2,9 @@ import { Body, Controller, Delete, Get, HttpStatus, Param, Patch, Post, UseGuard
 import { ScheduleService } from './schedule.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { UpdateScheduleDto } from './dto/update-schedule.dto';
 
-@UseGuards(AuthGuard("jwt"))
+// @UseGuards(AuthGuard("jwt"))
 @Controller(':planId/schedule')
 export class ScheduleController {
     constructor(private readonly scheduleService: ScheduleService) { }
@@ -12,33 +13,42 @@ export class ScheduleController {
     async create(
         @Param("planId") planId: number,
         @Body() createScheduleDto: CreateScheduleDto) {
-        const createSchedule = await this.scheduleService.create(planId,createScheduleDto);
+        const createSchedule = await this.scheduleService.create(planId, createScheduleDto);
 
         return {
-            statusCode: HttpStatus.CREATED,
-            message: "스케쥴이 생성되었습니다",
             createSchedule,
         };
     }
 
-    // @Get()
-    // findAll() {
-    //   return this.planService.findAll();
-    // }
+    @Get()
+    async findAll(@Param("planId") planId: number) {
+        const findAllSchedule = await this.scheduleService.findAll(planId);
 
-    // @Get(':id')
-    // findOne(@Param('id') id: string) {
-    //   return this.planService.findOne(+id);
-    // }
+        return {
+            findAllSchedule
+        };
+    }
 
-    // @Patch(':id')
-    // update(@Param('id') id: string, @Body() updatePlanDto: UpdatePlanDto) {
-    //   return this.planService.update(+id, updatePlanDto);
-    // }
+    @Patch(':id')
+    async update(
+        @Param('planId') planId: number,
+        @Param("id") id: number,
+        @Body() updateScheduleDto: UpdateScheduleDto) {
 
-    // @Delete(':id')
-    // remove(@Param('id') id: string) {
-    //   return this.planService.remove(+id);
-    // }
+        const updateSchedule = await this.scheduleService.update(planId, id, updateScheduleDto)
+
+        return updateSchedule;
+    }
+
+    @Delete(':id')
+    async remove(
+        @Param("planId") planId: number,
+        @Param('id') id: number) {
+
+        const deleteSchedule = await this.scheduleService.remove(planId, id)
+
+        return deleteSchedule;
+
+    }
 
 }

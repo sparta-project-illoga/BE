@@ -20,8 +20,8 @@ export class ChatRoom {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @OneToOne(() => Plan, (plan) => plan.room, { onDelete: 'CASCADE' })
-    plan: Plan;
+    // @OneToOne(() => Plan, (plan) => plan.room, { onDelete: 'CASCADE' })
+    // plan: Plan;
 
     @OneToMany(() => ChatContent, (content) => content.room)
     content: ChatContent[];
