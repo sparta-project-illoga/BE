@@ -41,6 +41,5 @@ export class Location {
   @OneToOne(() => User, (user) => user.location, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn()
   user: User;
 }

@@ -1,6 +1,6 @@
 import { Body, Controller, Put } from '@nestjs/common';
 import { LocationService } from './location.service';
-import { UserInfo } from 'src/user/utils/userInfo.decorator';
+import { UserInfo } from 'src/utils/userInfo.decorator';
 import { User } from 'src/user/entities/user.entity';
 
 @Controller('location')

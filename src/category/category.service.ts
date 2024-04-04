@@ -33,19 +33,19 @@ export class CategoryService {
   }
 
 
-  async update(categoryId: number, category_name: CategoryName) {
+  // async update(categoryId: number, category_name: CategoryName) {
 
-    const category = await this.categoryRepository.findOneBy({ categoryId });
+  //   const category = await this.categoryRepository.findOneBy({ categoryId });
 
-    if (_.isNil(category)) {
-      throw new NotFoundException('해당 카테고리가 존재하지 않습니다.')
-    }
+  //   if (_.isNil(category)) {
+  //     throw new NotFoundException('해당 카테고리가 존재하지 않습니다.')
+  //   }
 
-    await this.categoryRepository.update({ categoryId }, { category_name });
+  //   await this.categoryRepository.update({ categoryId }, { category_name });
 
 
-    return await this.categoryRepository.findOneBy({ categoryId });
-  }
+  //   return await this.categoryRepository.findOneBy({ categoryId });
+  // }
 
   async remove(categoryId: number) {
     const category = await this.categoryRepository.find({ where: { categoryId } });
