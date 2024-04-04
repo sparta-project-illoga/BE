@@ -11,6 +11,8 @@ export class LocationService {
   constructor(
     @InjectRepository(Location)
     private readonly locationRepository: Repository<Location>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly configService: ConfigService,
   ) {}
   // 사용자 위치 정보 업데이트
@@ -46,6 +48,8 @@ export class LocationService {
           region_3depth_name: addressInfo.region_3depth_name,
         });
         await this.locationRepository.save(userLocation);
+        user.location = userLocation;
+        await this.userRepository.save(user);
       } else {
         userLocation.latitude = latitude;
         userLocation.longitude = longitude;
@@ -55,6 +59,8 @@ export class LocationService {
         userLocation.region_3depth_name = addressInfo.region_3depth_name;
 
         await this.locationRepository.save(userLocation);
+        user.location = userLocation;
+        await this.userRepository.save(user);
 
         return {
           latitude,

@@ -4,11 +4,10 @@ import { LocationController } from './location.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Location } from './entities/location.entity';
 import { User } from 'src/user/entities/user.entity';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Location, User]), // LocationRepository를 TypeOrmModule에 추가
-  ],
+  imports: [TypeOrmModule.forFeature([Location, User]), ConfigModule],
   controllers: [LocationController],
   providers: [LocationService],
   exports: [LocationService],
