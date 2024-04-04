@@ -21,9 +21,12 @@ export class PostService {
 
   // 게시물 생성
   async createPost(user: User, createPostDto: CreatePostDto) {
-    const users = await this.userRepository.findOne({ where: { id: user.id } });
-    if (!users) {
-      throw new BadRequestException('사용자를 찾을 수 없습니다.');
+    const users = await this.userRepository.findOne({
+      where: { id: user.id },
+      relations: ['location'],
+    });
+    if (!users || !users.location) {
+      throw new BadRequestException('사용자 또는 인증지역을 찾을 수 없습니다.');
     }
 
     const newPost = new Post();
@@ -31,6 +34,7 @@ export class PostService {
     newPost.content = createPostDto.content;
     newPost.image = createPostDto.image;
     newPost.userId = user.id;
+    newPost.region = users.location.region_1depth_name;
     const post = await this.postRepository.save(newPost);
     return post;
   }
