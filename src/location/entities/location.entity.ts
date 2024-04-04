@@ -14,9 +14,11 @@ export class Location {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ type: 'int', nullable: false })
+  userId: number;
   // 주소
   @Column({ type: 'varchar', name: 'address_name' })
-  address;
+  address_name;
 
   // 시/도
   @Column({ type: 'varchar', name: 'region_1depth_name' })
@@ -41,6 +43,5 @@ export class Location {
   @OneToOne(() => User, (user) => user.location, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn()
   user: User;
 }
