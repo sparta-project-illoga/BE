@@ -30,12 +30,8 @@ export class PostService {
     newPost.title = createPostDto.title;
     newPost.content = createPostDto.content;
     newPost.image = createPostDto.image;
-    newPost.user = users;
+    newPost.userId = user.id;
     const post = await this.postRepository.save(newPost);
-    await this.postRepository.save({
-      userId: user.id,
-      postId: post.id,
-    });
     return post;
   }
 
@@ -64,7 +60,7 @@ export class PostService {
       throw new BadRequestException('작성자만 수정할 수 있습니다.');
     }
     const isChangedData =
-      updatePostDto.userId !== undefined ||
+      user.id !== undefined ||
       updatePostDto.title !== undefined ||
       updatePostDto.content !== undefined ||
       updatePostDto.image !== undefined;
