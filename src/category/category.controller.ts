@@ -31,17 +31,17 @@ export class CategoryController {
     };
   }
 
-  //카테고리 수정
-  @Patch(':categoryId')
-  async update(@Param('categoryId') categoryId: number, @Body() updateCategoryDto: UpdateCategoryDto) {
-    const category = await this.categoryService.update(categoryId, updateCategoryDto.category_name);
+  // //카테고리 수정
+  // @Patch(':categoryId')
+  // async update(@Param('categoryId') categoryId: number, @Body() updateCategoryDto: UpdateCategoryDto) {
+  //   const category = await this.categoryService.update(categoryId, updateCategoryDto.category_name);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: '해당 카테고리를 수정하였습니다.',
-      category,
-    };
-  }
+  //   return {
+  //     statusCode: HttpStatus.OK,
+  //     message: '해당 카테고리를 수정하였습니다.',
+  //     category,
+  //   };
+  // }
 
   //카테고리 삭제
   @Delete(':categoryId')

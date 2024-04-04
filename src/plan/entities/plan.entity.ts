@@ -2,6 +2,7 @@ import { IsNumber, IsString } from "class-validator";
 import { Schedule } from "src/schedule/entities/schedule.entity";
 import { Place} from "../entities/place.entity"
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Member } from "src/member/entities/member.entity";
 
 @Entity({name : "plan"})
 export class Plan {
@@ -33,4 +34,7 @@ export class Plan {
 
     @OneToMany(() => Place, (place) => place.plan, {onDelete: "CASCADE"})
     place: Place[];
+
+    @OneToMany(() => Member, (member) => member.plan, {onDelete: "CASCADE"})
+    member: Member[];
 }

@@ -10,6 +10,8 @@ import {
 import { PostCommentService } from './post-comment.service';
 import { CreatePostCommentDto } from './dto/create-post-comment.dto';
 import { UpdatePostCommentDto } from './dto/update-post-comment.dto';
+import { UserInfo } from 'src/utils/userInfo.decorator';
+import { User } from 'src/user/entities/user.entity';
 
 @Controller('post')
 export class PostCommentController {
@@ -51,6 +53,6 @@ export class PostCommentController {
   // 댓글 삭제
   @Delete('comment/:postId')
   removeComment(@Param('postId') postId: number, @UserInfo() user: User) {
-    return this.postCommentService.removeComment(postId, user);
+    return this.postCommentService.removeComment(postId, user.id);
   }
 }

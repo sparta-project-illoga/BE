@@ -11,6 +11,7 @@ import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { User } from 'src/user/entities/user.entity';
+import { UserInfo } from 'src/utils/userInfo.decorator';
 
 @Controller('post')
 export class PostController {
@@ -19,7 +20,7 @@ export class PostController {
   // 게시물 생성
   @Post()
   async createPost(
-    @userInfo() user: User,
+    @UserInfo() user: User,
     @Body() createPostDto: CreatePostDto,
   ) {
     return await this.postService.createPost(user, createPostDto);
@@ -39,7 +40,7 @@ export class PostController {
   }
   // 게시물 삭제
   @Delete(':postId')
-  async removePost(@userInfo() user: User, @Param('postId') postId: number) {
+  async removePost(@UserInfo() user: User, @Param('postId') postId: number) {
     return this.postService.removePost(user, postId);
   }
   // 게시물 수정
@@ -47,7 +48,7 @@ export class PostController {
   async updatePost(
     @Param('postId') postId: number,
     @Body() updatePostDto: UpdatePostDto,
-    @userInfo() user: User,
+    @UserInfo() user: User,
   ) {
     return this.postService.updatePost(postId, updatePostDto, user);
   }
