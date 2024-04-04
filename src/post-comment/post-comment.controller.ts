@@ -10,8 +10,9 @@ import {
 import { PostCommentService } from './post-comment.service';
 import { CreatePostCommentDto } from './dto/create-post-comment.dto';
 import { UpdatePostCommentDto } from './dto/update-post-comment.dto';
-import { UserInfo } from 'src/user/utils/userInfo.decorator';
+import { UserInfo } from 'src/utils/userInfo.decorator';
 import { User } from 'src/user/entities/user.entity';
+
 @Controller('post')
 export class PostCommentController {
   constructor(private readonly postCommentService: PostCommentService) {}

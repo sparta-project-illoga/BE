@@ -11,7 +11,7 @@ import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { User } from 'src/user/entities/user.entity';
-import { UserInfo } from 'src/user/utils/userInfo.decorator';
+import { UserInfo } from 'src/utils/userInfo.decorator';
 
 @Controller('post')
 export class PostController {
