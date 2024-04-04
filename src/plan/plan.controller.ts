@@ -1,16 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards } from '@nestjs/common';
 import { PlanService } from './plan.service';
 import { CreatePlanDto } from './dto/create-plan.dto';
-import { UpdatePlanDto } from './dto/update-plan.dto';
+import { PickPlanDto } from './dto/pick-plan.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+// @UseGuards(AuthGuard('jwt'))
 @Controller('plan')
 export class PlanController {
   constructor(
     private readonly planService: PlanService
   ) { }
 
+  // 1. 플랜 생성 post
+  // 2. 플랜에 총예산/일정 넣기 patch
+
   // 플랜 생성
-  @Post("/activeness")
+  @Post()
   async create(
     @Body() createPlanDto: CreatePlanDto) {
     const createPlan = await this.planService.create(createPlanDto);
@@ -20,17 +25,19 @@ export class PlanController {
     };
   }
 
-  // 플랜 수동 생성
-  @Post("/passivity")
+  // 플랜 스케줄 수동 생성
+  @Patch("/passivity/:id")
   async createpassive(
-    @Body() CreatePlanDto: CreatePlanDto) {
-      const createPlan = await this.planService
-    }
+    @Param("id") id: number, @Body() pickPlanDto : PickPlanDto) {
+    const createPlan = await this.planService.createpassive(id,pickPlanDto);
 
-  // 플랜에 스케쥴 등록
-  @Patch(':id')
-  async update(@Param('id') id: number, @Body() updatePlanDto :UpdatePlanDto) {
-    const updatePlan = await this.planService.update(id, updatePlanDto);
+    return createPlan;
+  }
+
+  // 플랜 스케쥴 직접 등록
+  @Patch('activeness/:id')
+  async update(@Param('id') id: number, @Body() createPlanDto: CreatePlanDto) {
+    const updatePlan = await this.planService.update(id, createPlanDto);
 
     return updatePlan;
   }
