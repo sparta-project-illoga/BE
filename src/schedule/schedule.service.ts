@@ -5,6 +5,7 @@ import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { Repository } from 'typeorm';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { Place } from 'src/plan/entities/place.entity';
+import { Plan } from 'src/plan/entities/plan.entity';
 
 @Injectable()
 export class ScheduleService {
@@ -13,6 +14,8 @@ export class ScheduleService {
     private ScheduleRepository: Repository<Schedule>,
     @InjectRepository(Place)
     private placeRepository: Repository<Place>,
+    @InjectRepository(Plan) 
+    private planRepository: Repository<Plan>,
   ) { }
 
   async create(planId: number, createScheduleDto: CreateScheduleDto) {
@@ -47,11 +50,48 @@ export class ScheduleService {
     return { createSchedule };
   }
 
+  async pasteSchedule(planid : number, schedule : Schedule) {
+
+    const createSchedule = await this.ScheduleRepository.save({
+      planId : planid,
+      place : schedule.place,
+      date : schedule.date,
+      money : schedule.money
+
+    })
+
+    return createSchedule;
+  }
+
+  async findAllPlace(planId: number): Promise<{ place : Place[];}> {
+    const place = await this.placeRepository.find({
+      where: {planId}
+    });
+
+    return {place};
+  }
+
+  async pasteplace(planid : number, place : Place) {
+
+    const createSchedule = await this.placeRepository.save({
+      planId : planid,
+      placename : place.placename
+    })
+
+    return createSchedule;
+  }
+
   async findAll(planId: number): Promise<{ schedule: Schedule[]; }> {
+
     const schedule = await this.ScheduleRepository.find({
       where: { planId },
       order: { id: "ASC" }
     });
+
+    if (!schedule || schedule.length === 0) {
+      throw new BadGatewayException("스케줄이 존재하지 않습니다");
+    }
+
 
     return { schedule };
 
@@ -80,6 +120,11 @@ export class ScheduleService {
       where: { id }
     })
 
+    if (!deleteSchedule) {
+      throw new BadGatewayException("존재하지 않는 스케줄입니다");
+    }
+
+
     const findPlan = await this.ScheduleRepository.count({
       where : {planId, place: deleteSchedule.place}
     });
@@ -91,7 +136,24 @@ export class ScheduleService {
       });
     }
 
+    const findtotaldata = await this.planRepository.findOne({
+      where: { id : planId }
+    })
+
     await this.ScheduleRepository.delete(id);
+
+    const count = await this.ScheduleRepository.count({
+      where: { planId: planId },
+    });
+
+    await this.planRepository.update(
+      {id : planId}, 
+      {
+        totalmoney : findtotaldata.totalmoney - deleteSchedule.money, 
+        totaldate : count
+      });
+
+    
 
     return deleteSchedule;
   }
