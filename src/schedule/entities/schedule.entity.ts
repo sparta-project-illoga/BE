@@ -1,6 +1,6 @@
 import { IsNumber, IsString } from "class-validator";
 import { Plan } from "src/plan/entities/plan.entity";
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity({name : "schedule"})
 export class Schedule {
@@ -15,11 +15,9 @@ export class Schedule {
     place : string;
 
     @Column({nullable: false})
-    @IsNumber()
     date: number;
 
     @Column({nullable: false})
-    @IsNumber()
     money: number;
 
     @CreateDateColumn()
@@ -28,7 +26,8 @@ export class Schedule {
     @UpdateDateColumn()
     updated_at: Date;
 
-    @ManyToOne(() => Plan, (plan) => plan.schedule)
+    @ManyToOne(() => Plan, (plan) => plan.schedule, {onDelete: "CASCADE"})
+    @JoinColumn({name: "planId"})
     plan: Plan;
 
 }

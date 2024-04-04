@@ -1,6 +1,8 @@
 import { IsNumber, IsString } from "class-validator";
 import { Schedule } from "src/schedule/entities/schedule.entity";
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Place} from "../entities/place.entity"
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Member } from "src/member/entities/member.entity";
 
 @Entity({name : "plan"})
 export class Plan {
@@ -12,15 +14,9 @@ export class Plan {
     name: string;
 
     @Column({nullable: false})
-    @IsString()
-    totallocalname: string;
-
-    @Column({nullable: false})
-    @IsNumber()
     totaldate: number;
 
     @Column({nullable: false})
-    @IsNumber()
     totalmoney: number;
 
     @Column({nullable: true})
@@ -33,6 +29,12 @@ export class Plan {
     @UpdateDateColumn()
     updated_at: Date;
 
-    @OneToMany(() => Schedule, (schedule) => schedule.plan)
+    @OneToMany(() => Schedule, (schedule) => schedule.plan, {onDelete: "CASCADE"})
     schedule: Schedule[];
+
+    @OneToMany(() => Place, (place) => place.plan, {onDelete: "CASCADE"})
+    place: Place[];
+
+    @OneToMany(() => Member, (member) => member.plan, {onDelete: "CASCADE"})
+    member: Member[];
 }
