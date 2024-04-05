@@ -6,8 +6,9 @@ import { User } from 'src/user/entities/user.entity';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { Area } from './entities/area.entity';
+import { TourSpot } from './entities/tour-spot.entity';
 import * as fs from 'fs';
-
+import * as path from 'path';
 @Injectable()
 export class LocationService {
   constructor(
@@ -17,6 +18,8 @@ export class LocationService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Area)
     private readonly areaRepository: Repository<Area>,
+    @InjectRepository(TourSpot)
+    private readonly tourSpotRepository: Repository<TourSpot>,
     private readonly configService: ConfigService,
   ) {}
   // 사용자 위치 정보 업데이트
@@ -82,7 +85,7 @@ export class LocationService {
   async addArea() {
     try {
       const areaData = await fs.promises.readFile(
-        './src/location/area-data.json',
+        './src/location/data/area-data.json',
         'utf-8',
       );
       const parsedAreaData = JSON.parse(areaData);
@@ -99,5 +102,58 @@ export class LocationService {
     } catch (error) {
       throw new Error('데이터 추가 실패');
     }
+  }
+
+  async addTourSpot() {
+    try {
+      const files = await fs.promises.readdir('./src/location/data/');
+      for (const file of files) {
+        if (file.startsWith('areaBasedList') && file.endsWith('.json')) {
+          const filePath = path.join('./src/location/data/', file);
+          const tourSpotData = await fs.promises.readFile(filePath, 'utf-8');
+          const parsedTourSpotData = JSON.parse(tourSpotData);
+          const tourSpotItems = parsedTourSpotData.response.body.items.item;
+          for (const item of tourSpotItems) {
+            const existingTourSpot = await this.tourSpotRepository.findOne({
+              where: { contentId: item.contentid },
+            });
+            if (!existingTourSpot) {
+              const tourSpot = this.tourSpotRepository.create({
+                addr1: item.addr1,
+                addr2: item.addr2,
+                areaCode: item.areacode,
+                bookTour: item.booktour,
+                cat1: item.cat1,
+                cat2: item.cat2,
+                cat3: item.cat3,
+                contentId: item.contentid,
+                contentTypeId: item.contenttypeid,
+                createdTime: item.createdtime,
+                firstImage: item.firstimage,
+                firstImage2: item.firstimage2,
+                cpyrhtDivCd: item.cpyrhtDivCd,
+                mapX: item.mapx,
+                mapY: item.mapy,
+                mlevel: item.mlevel,
+                modifiedTime: item.modifiedtime,
+                sigunguCode: item.sigungucode,
+                tel: item.tel,
+                title: item.title,
+                zipCode: item.zipcode,
+              });
+              await this.tourSpotRepository.save(tourSpot);
+            }
+          }
+        }
+      }
+      return { message: '데이터 추가 성공' };
+    } catch (error) {
+      throw new Error('데이터 추가 실패');
+    }
+  }
+
+  async findAllTourSpot() {
+    const tourSpots = await await this.tourSpotRepository.find();
+    return tourSpots;
   }
 }
