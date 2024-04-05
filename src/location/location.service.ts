@@ -5,6 +5,8 @@ import { Location } from './entities/location.entity';
 import { User } from 'src/user/entities/user.entity';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
+import { Area } from './entities/area.entity';
+import * as fs from 'fs';
 
 @Injectable()
 export class LocationService {
@@ -13,6 +15,8 @@ export class LocationService {
     private readonly locationRepository: Repository<Location>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Area)
+    private readonly areaRepository: Repository<Area>,
     private readonly configService: ConfigService,
   ) {}
   // 사용자 위치 정보 업데이트
@@ -72,6 +76,28 @@ export class LocationService {
     } catch (error) {
       console.error('Error updating location:', error);
       return { message: '사용자 위치정보를 업데이트하는데 실패했습니다.' };
+    }
+  }
+
+  async addArea() {
+    try {
+      const areaData = await fs.promises.readFile(
+        './src/location/area-data.json',
+        'utf-8',
+      );
+      const parsedAreaData = JSON.parse(areaData);
+      for (const data of parsedAreaData) {
+        const existingArea = await this.areaRepository.findOne({
+          where: { areaCode: data.areaCode },
+        });
+        if (!existingArea) {
+          const area = this.areaRepository.create(data);
+          await this.areaRepository.save(area);
+        }
+      }
+      return { message: '데이터 추가 성공' };
+    } catch (error) {
+      throw new Error('데이터 추가 실패');
     }
   }
 }
