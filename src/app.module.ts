@@ -4,13 +4,12 @@ import { AppService } from './app.service';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import * as Joi from 'joi'
+import * as Joi from 'joi';
 
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { PlanModule } from './plan/plan.module';
 import { TravelModule } from './travel/travel.module';
-import { LocalModule } from './local/local.module';
 import { PostCommentModule } from './post-comment/post-comment.module';
 import { LocationModule } from './location/location.module';
 import { PostModule } from './post/post.module';
@@ -19,7 +18,6 @@ import { ScheduleModule } from './schedule/schedule.module';
 import { User } from './user/entities/user.entity';
 import { Travel } from './travel/entities/travel.entity';
 import { Plan } from './plan/entities/plan.entity';
-import { Local } from './local/entities/local.entity';
 import { Category } from './category/entities/category.entity';
 import { Location } from './location/entities/location.entity';
 import { PostComment } from './post-comment/entities/post-comment.entity';
@@ -40,7 +38,18 @@ const typeOrmModuleOptions = {
     host: configService.get('DB_HOST'),
     port: configService.get('DB_PORT'),
     database: configService.get('DB_NAME'),
-    entities: [User, Travel, Plan, Local, Schedule, Place, Post, PostComment, Location, Member], // 엔티티는 반드시 여기에 명시!
+    entities: [
+      User,
+      Travel,
+      Plan,
+      Schedule,
+      Place,
+      Post,
+      Category,
+      PostComment,
+      Location,
+      Member,
+    ], // 엔티티는 반드시 여기에 명시!
     synchronize: configService.get('DB_SYNC'),
     logging: true,
   }),
@@ -71,7 +80,6 @@ const typeOrmModuleOptions = {
     PlanModule,
     TravelModule,
     ScheduleModule,
-    LocalModule,
     ScheduleModule,
     MemberModule,
   ],

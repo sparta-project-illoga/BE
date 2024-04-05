@@ -6,18 +6,21 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { PostCommentService } from './post-comment.service';
 import { CreatePostCommentDto } from './dto/create-post-comment.dto';
 import { UpdatePostCommentDto } from './dto/update-post-comment.dto';
 import { UserInfo } from 'src/utils/userInfo.decorator';
 import { User } from 'src/user/entities/user.entity';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('post')
 export class PostCommentController {
   constructor(private readonly postCommentService: PostCommentService) {}
 
   // 댓글 생성
+  @UseGuards(AuthGuard('jwt'))
   @Post('comment/:postId')
   createComment(
     @Body() createPostCommentDto: CreatePostCommentDto,
@@ -37,22 +40,30 @@ export class PostCommentController {
   }
 
   // 댓글 수정
-  @Patch('comment/:postId')
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('comment/:postId/:commentId')
   updateComment(
     @Param('postId') postId: number,
+    @Param('commentId') commentId: number,
     @Body() updatePostCommentDto: UpdatePostCommentDto,
     @UserInfo() user: User,
   ) {
     return this.postCommentService.updateComment(
       postId,
+      commentId,
       updatePostCommentDto,
       user.id,
     );
   }
 
   // 댓글 삭제
-  @Delete('comment/:postId')
-  removeComment(@Param('postId') postId: number, @UserInfo() user: User) {
-    return this.postCommentService.removeComment(postId, user.id);
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('comment/:postId/:commentId')
+  removeComment(
+    @Param('postId') postId: number,
+    @Param('commentId') commentId: number,
+    @UserInfo() user: User,
+  ) {
+    return this.postCommentService.removeComment(postId, commentId, user.id);
   }
 }

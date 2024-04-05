@@ -14,7 +14,6 @@ import { IsEmail, IsEnum, IsNumber, IsString } from 'class-validator';
 import { Exclude } from 'class-transformer';
 import { Post } from 'src/post/entities/post.entity';
 import { PostComment } from 'src/post-comment/entities/post-comment.entity';
-import { Local } from 'src/local/entities/local.entity';
 import { Location } from 'src/location/entities/location.entity';
 
 @Index('email', ['email'], { unique: true })
@@ -71,10 +70,7 @@ export class User {
   @OneToMany(() => PostComment, (postComment) => postComment.user)
   postComment: PostComment[];
 
-  @OneToMany(() => Local, (local) => local.user)
-  local: Local[];
-
-  @OneToOne(() => Location, (location) => location.user )
+  @OneToOne(() => Location, (location) => location.user)
   @JoinColumn()
-  location: Location
+  location: Location;
 }

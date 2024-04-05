@@ -48,28 +48,40 @@ export class PostCommentService {
 
   async updateComment(
     postId: number,
+    commentId: number,
     updatePostCommentDto: UpdatePostCommentDto,
     userId: number,
   ) {
     const post = await this.postService.findOnePostByPostId(postId);
     if (!post) throw new NotFoundException('존재하지 않는 게시글입니다.');
-    if (post.userId !== userId) {
-      throw new UnauthorizedException('게시물 작성자만 수정할 수 있습니다.');
+    const comment = await this.postCommentRepository.findOne({
+      where: { id: commentId, postId: postId },
+    });
+    if (!comment) throw new NotFoundException('존재하지 않는 댓글입니다.');
+    if (comment.userId !== userId) {
+      throw new UnauthorizedException('댓글 작성자만 수정할 수 있습니다.');
     }
 
-    const updateComment = await this.postCommentRepository.update(
-      { postId, userId },
+    await this.postCommentRepository.update(
+      { id: commentId },
       updatePostCommentDto,
     );
-    return updateComment;
+    return await this.postCommentRepository.findOne({
+      where: { id: commentId },
+    });
   }
 
-  async removeComment(postId: number, userId: number) {
+  async removeComment(postId: number, commentId: number, userId: number) {
     const post = await this.postService.findOnePostByPostId(postId);
     if (!post) throw new NotFoundException('존재하지 않는 게시글입니다.');
-    if (post.userId !== userId) {
-      throw new UnauthorizedException('게시물 작성자만 수정할 수 있습니다.');
+    const comment = await this.postCommentRepository.findOne({
+      where: { id: commentId, postId: postId },
+    });
+    if (!comment) throw new NotFoundException('존재하지 않는 댓글입니다.');
+    if (comment.userId !== userId) {
+      throw new UnauthorizedException('댓글 작성자만 삭제할 수 있습니다.');
     }
-    await this.postCommentRepository.delete(postId);
+    await this.postCommentRepository.delete(commentId);
+    return { message: '댓글이 삭제되었습니다.' };
   }
 }
