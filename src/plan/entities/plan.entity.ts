@@ -1,9 +1,9 @@
 import { IsNumber, IsString } from "class-validator";
 import { Schedule } from "src/schedule/entities/schedule.entity";
-import { Place } from "../entities/place.entity"
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Member } from "src/member/entities/member.entity";
 import { ChatRoom } from "src/chat/entities/chat_rooms.entity";
+import { Place } from "../entities/place.entity"
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Category } from "src/category/entities/category.entity";
 
 @Entity({ name: "plan" })

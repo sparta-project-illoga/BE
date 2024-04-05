@@ -13,5 +13,6 @@ import { Plan } from 'src/plan/entities/plan.entity';
   ],
   controllers: [CategoryController],
   providers: [CategoryService],
+  exports: [CategoryService, TypeOrmModule],
 })
 export class CategoryModule { }

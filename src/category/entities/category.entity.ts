@@ -1,6 +1,7 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { Plan } from "src/plan/entities/plan.entity";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { CategoryName } from "../types/category.type";
+import { Plan } from "src/plan/entities/plan.entity";
+
 
 @Entity({ name: 'categories' })
 export class Category {

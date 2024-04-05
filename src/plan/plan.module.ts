@@ -7,13 +7,15 @@ import { ScheduleModule } from 'src/schedule/schedule.module';
 import { ScheduleService } from 'src/schedule/schedule.service';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
 import { Place } from './entities/place.entity';
+import { CategoryService } from 'src/category/category.service';
+import { Category } from 'src/category/entities/category.entity';
 
 @Module({
   imports: [
     ScheduleModule,
-    TypeOrmModule.forFeature([Plan, Schedule, Place])
+    TypeOrmModule.forFeature([Plan, Schedule, Place, Category])
   ],
   controllers: [PlanController],
-  providers: [PlanService, ScheduleService],
+  providers: [PlanService, ScheduleService, CategoryService],
 })
 export class PlanModule { }
