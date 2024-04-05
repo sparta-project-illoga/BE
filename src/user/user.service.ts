@@ -1,6 +1,6 @@
-import { ConflictException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserDto } from './dto/user.update.dto';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { compare, hash } from 'bcrypt';
@@ -9,6 +9,10 @@ import _ from 'lodash';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
+import { UtilsService } from 'src/utils/utils.service';
+import { AwsService } from 'src/aws/aws.service';
+import { MailerService } from 'src/mailer/mailer.service';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class UserService {
@@ -17,6 +21,10 @@ export class UserService {
     private userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly utilsService: UtilsService,
+    private readonly awsService: AwsService,
+    private readonly redisService: RedisService,
+    private readonly mailerService: MailerService
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -37,6 +45,8 @@ export class UserService {
       nickname: registerDto.nickname,
       phone: registerDto.phone
     });
+
+    return {message: '회원가입이 완료되었습니다.'}
   }
 
   async login(loginDto: LoginDto) {
@@ -60,66 +70,80 @@ export class UserService {
     };
   }
 
-  // async sendEmail(id: number): Promise<boolean> {
-  //   const user = await this.userService.findById(id);
+  async update(
+    id: number, 
+    updateUserDto: UpdateUserDto,
+    file?: Express.Multer.File
+    ) {
+    
+    // 유저 확인
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('사용자를 찾을 수 없습니다.');
+    }
 
-  //   const getRandomCode = (min, max) => {
-  //     min = Math.ceil(min);
-  //     max = Math.floor(max);
-  //     return Math.floor(Math.random() * (max - min)) + min;
-  //   };
+    let imageUrl = user.image_url;
 
-  //   const randomCode = getRandomCode(111111, 999999);
+    if (file) {
+    //이미 입력된 이미지가 있다면 S3에서 기존 이미지 삭제
+    if (user.image_url !== null) {
+      await this.awsService.deleteUploadToS3(user.image_url);
+    }
+  }
+  
+    //S3에 이미지 업로드, url return
+    const imageName = this.utilsService.getUUID();
+    const ext = file? file.originalname.split('.').pop() : null;
+  
+    if (ext) {
+    imageUrl = await this.awsService.imageUploadToS3(
+      `${imageName}.${ext}`,
+      file,
+      ext,
+    );
+    }
 
-  //   const transport = nodemailer.createTransport({
-  //     service: 'Gmail',
-  //     secure: true,
-  //     auth: {
-  //       type: 'OAuth2',
-  //       user: process.env.GMAIL_ID,
-  //       clientId: process.env.GMAIL_CLIENT_ID,
-  //       clientSecret: process.env.GMAIL_CLIENT_SECRET,
-  //       refreshToken: process.env.GMAIL_REFRESH_TOKEN,
-  //       accessToken: process.env.GMAIL_ACCESS_TOKEN,
-  //       expires: 3600,
-  //     },
-  //   });
+    // DB에 저장
+    const modifiedUser = await this.userRepository.save({
+      id: user.id,
+      nickname: updateUserDto.nickname,
+      phone: updateUserDto.phone,
+      image_url: `${imageName}.${ext}`,
+    })
 
-  //   if (randomCode) {
-  //     await this.cacheManager.get(`${user.email}'s AuthenticationCode`);
-  //   }
-  //   await this.cacheManager.set(
-  //     `${user.email}'s AuthenticationCode`,
-  //     randomCode,
-  //   );
-
-  //   const sendResult = await transport.sendMail({
-  //     from: {
-  //       name: '인증관리자',
-  //       address: process.env.GMAIL_ID,
-  //     },
-  //     subject: '내 서비스 인증 메일',
-  //     to: [user.email],
-  //     text: `The Authentication code is ${randomCode}`,
-  //   });
-  //   return sendResult.accepted.length > 0;
-  // }
-
-
-  findAll() {
-    return `This action returns all user`;
+    return modifiedUser
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async sendVerification(email: string) {
+    await this.mailerService.sendVerifyToken(email)
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async verifyUser(email: string, code: string) {
+    const redisClient = this.redisService.getClient()
+    const key = `verification_code:${email}`
+    const storedCode = await redisClient.get(key)
+
+    if (!storedCode) {
+      throw new BadRequestException('이메일 발송을 해주세요.')
+    }
+
+    if (code === storedCode) {
+      // 인증코드가 일치하면 레디스 키를 삭제
+      await redisClient.del(key);
+      return {message: '인증이 완료되었습니다.'};
+    }
+    return {message: '인증번호가 일치하지 않습니다.'}
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(userId: number, id: number) {
+    const user = await this.findById(id)
+
+    if(userId !== id) {
+      throw new NotFoundException('유저를 찾을 수 없습니다.')
+    }
+
+    await this.userRepository.delete({id : id})
+    return {message: '회원탈퇴가 완료되었습니다.'}
   }
 
   async findByEmail(email: string) {

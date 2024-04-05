@@ -1,22 +1,25 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { UserService } from './user.service';
 import { RegisterDto } from './dto/register.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserDto } from './dto/user.update.dto';
 import { LoginDto } from './dto/login.dto';
 import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { UserInfo } from 'src/utils/userInfo.decorator';
 import { User } from './entities/user.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  //회원가입
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
     return await this.userService.register(registerDto);
   }
 
+  //로그인
   @Post('login')
   async login(
     @Body() loginDto: LoginDto,
@@ -27,6 +30,7 @@ export class UserController {
     return token;
   }
 
+  // 프로필
   @UseGuards(AuthGuard('jwt'))
   @Get('info')
   getInfo(@UserInfo() user: User) {
@@ -43,18 +47,41 @@ export class UserController {
     }
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+  // 정보수정
+  @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(FileInterceptor('file'))
+  @Patch('modify')
+  async update(
+    @UserInfo() user: User, 
+    @Body() updateUserDto: UpdateUserDto,
+    @UploadedFile() file: Express.Multer.File,
+    ) {
+    const updatedProfile = await this.userService.update(
+      user.id,
+      updateUserDto,
+      file
+      );
+    return updatedProfile
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  // 인증메일 전송
+  @Post('sendverify')
+  async sendVerification(@Body('email') email: string) {
+    return await this.userService.sendVerification(email)
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  // 인증번호 검증
+  @Post('verifycode')
+  async verifyUser(@Body('email') email: string, @Body('code') code: string) {
+    return await this.userService.verifyUser(email, code)
+  }
+
+  // TODO 비밀번호 확인
+
+  // 회원탈퇴
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('leave/:id')
+  remove(@UserInfo() user: User, @Param('id') id:number) {
+    return this.userService.remove(user.id, id);
   }
 }
