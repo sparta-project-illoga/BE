@@ -1,15 +1,30 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
-import { UpdateChatDto } from './dto/update-chat.dto';
+import { CreateMessageDto } from './dto/create-message.dto';
+import { Members } from 'src/member/decorators/member.decorator';
+import { MemberType } from 'src/member/types/member.type';
+import { UserInfo } from 'src/utils/userInfo.decorator';
+import { User } from 'src/user/entities/user.entity';
+import { MemberGuard } from 'src/utils/member.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('chat')
 export class ChatController {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(private readonly chatService: ChatService) { }
 
-  @Post()
-  create(@Body() createChatDto: CreateChatDto) {
-    return this.chatService.create(createChatDto);
+  //채팅방 만들기
+  //memberguard : leader만 가능
+  @Members(MemberType.Leader)
+  @Post(':planId')
+  async createRoom(@Param('planId') planId: number, @Body() createChatDto: CreateChatDto) {
+    console.log("채팅방 만들기 planId,채팅방이름 : ", planId, createChatDto.name);
+    const room = await this.chatService.createRoom(planId, createChatDto.name);
+    return {
+      statusCode: HttpStatus.OK,
+      message: `${room.name} 채팅방 생성에 성공했습니다.`,
+      room,
+    }
   }
 
   @Get()

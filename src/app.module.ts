@@ -28,6 +28,7 @@ import { Schedule } from './schedule/entities/schedule.entity';
 import { Place } from './plan/entities/place.entity';
 import { MemberModule } from './member/member.module';
 import { Member } from './member/entities/member.entity';
+import { ChatModule } from './chat/chat.module';
 
 const typeOrmModuleOptions = {
   useFactory: async (
@@ -74,8 +75,10 @@ const typeOrmModuleOptions = {
     LocalModule,
     ScheduleModule,
     MemberModule,
+
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

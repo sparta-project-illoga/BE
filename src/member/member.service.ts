@@ -19,8 +19,14 @@ export class MemberService {
     if (!plan) {
       throw new BadRequestException('해당 플랜은 존재하지 않습니다.');
     }
+    ;
+    const check = await this.memberRepository.findOne({ where: { planId, userId } });
 
-    const member = await this.memberRepository.save({ id: planId, userId });
+    if (check) {
+      throw new BadRequestException('이미 해당 플랜에 초대된 멤버입니다.');
+    }
+
+    const member = await this.memberRepository.save({ planId, userId, name: user.nickname });
 
     return member;
   }
@@ -31,9 +37,12 @@ export class MemberService {
     return members;
   }
 
-  // findOne(id: number) {
-  //   return `This action returns a #${id} member`;
-  // }
+  //memberguard에서 member 찾아서 return
+  async findMember(userId: number, planId: number) {
+    const member = await this.memberRepository.findOne({ where: { userId, planId } });
+
+    return member;
+  }
 
   async update(memberId: number, userId: number) {
     await this.memberRepository.update({ memberId }, { userId });
