@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 
 @Entity({
-  name: 'postComments',
+  name: 'post_comments',
 })
 export class PostComment {
   @PrimaryGeneratedColumn()

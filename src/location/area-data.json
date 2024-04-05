@@ -1,0 +1,19 @@
+[
+  { "areaCode": "1", "name": "서울" },
+  { "areaCode": "2", "name": "인천" },
+  { "areaCode": "3", "name": "대전" },
+  { "areaCode": "4", "name": "대구" },
+  { "areaCode": "5", "name": "광주" },
+  { "areaCode": "6", "name": "부산" },
+  { "areaCode": "7", "name": "울산" },
+  { "areaCode": "8", "name": "세종특별자치시" },
+  { "areaCode": "31", "name": "경기도" },
+  { "areaCode": "32", "name": "강원특별자치도" },
+  { "areaCode": "33", "name": "충청북도" },
+  { "areaCode": "34", "name": "충청남도" },
+  { "areaCode": "35", "name": "경상북도" },
+  { "areaCode": "36", "name": "경상남도" },
+  { "areaCode": "37", "name": "전북특별자치도" },
+  { "areaCode": "38", "name": "전라남도" },
+  { "areaCode": "39", "name": "제주도" }
+]

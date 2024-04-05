@@ -5,23 +5,29 @@ import { Location } from './entities/location.entity';
 import { User } from 'src/user/entities/user.entity';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
-
+import { Area } from './entities/area.entity';
+import { TourSpot } from './entities/tour-spot.entity';
+import * as fs from 'fs';
+import * as path from 'path';
 @Injectable()
 export class LocationService {
   constructor(
     @InjectRepository(Location)
     private readonly locationRepository: Repository<Location>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Area)
+    private readonly areaRepository: Repository<Area>,
+    @InjectRepository(TourSpot)
+    private readonly tourSpotRepository: Repository<TourSpot>,
     private readonly configService: ConfigService,
   ) {}
   // 사용자 위치 정보 업데이트
   async updateLocation(
-    // userId: number,
-    userId: User, // user연결되면 이걸로 쓰기
+    user: User,
     locationData: { latitude: number; longitude: number },
   ) {
     const { latitude, longitude } = locationData;
-    console.log('사용자 위치데이터 : ', latitude, longitude);
-
     try {
       const response = await axios.get(
         `https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${longitude}&y=${latitude}`,
@@ -33,36 +39,121 @@ export class LocationService {
       );
 
       const { address, road_address } = response.data.documents[0];
-      console.log('message:', response.data.documents[0]);
-
-      const userLocation = await this.locationRepository.findOne({
-        where: { user: userId },
-      });
-      if (!userLocation) {
-        return { message: '사용자 위치정보를 찾을수 없습니다.' };
-      }
       const addressInfo = address || road_address;
 
-      userLocation.latitude = latitude;
-      userLocation.longitude = longitude;
-      userLocation.address = addressInfo.address_name;
-      userLocation.region_1depth_name = addressInfo.region_1depth_name;
-      userLocation.region_2depth_name = addressInfo.region_2depth_name;
-      userLocation.region_3depth_name = addressInfo.region_3depth_name;
+      let userLocation = await this.locationRepository.findOne({
+        where: { userId: user.id },
+      });
+      if (!userLocation) {
+        userLocation = this.locationRepository.create({
+          userId: user.id,
+          latitude: latitude,
+          longitude: longitude,
+          address_name: addressInfo.address_name,
+          region_1depth_name: addressInfo.region_1depth_name,
+          region_2depth_name: addressInfo.region_2depth_name,
+          region_3depth_name: addressInfo.region_3depth_name,
+        });
+        await this.locationRepository.save(userLocation);
+        user.location = userLocation;
+        await this.userRepository.save(user);
+      } else {
+        userLocation.latitude = latitude;
+        userLocation.longitude = longitude;
+        userLocation.address_name = addressInfo.address_name;
+        userLocation.region_1depth_name = addressInfo.region_1depth_name;
+        userLocation.region_2depth_name = addressInfo.region_2depth_name;
+        userLocation.region_3depth_name = addressInfo.region_3depth_name;
 
-      await this.locationRepository.save(userLocation);
+        await this.locationRepository.save(userLocation);
+        user.location = userLocation;
+        await this.userRepository.save(user);
 
-      const userAddress = addressInfo.address_name;
-      console.log(userAddress);
-      return {
-        latitude,
-        longitude,
-        address: userAddress,
-        message: '사용자 위치정보가 적용되었습니다.',
-      };
+        return {
+          latitude,
+          longitude,
+          address_name: addressInfo.address_name,
+          message: '사용자 위치정보가 적용되었습니다.',
+        };
+      }
     } catch (error) {
       console.error('Error updating location:', error);
       return { message: '사용자 위치정보를 업데이트하는데 실패했습니다.' };
     }
+  }
+
+  async addArea() {
+    try {
+      const areaData = await fs.promises.readFile(
+        './src/location/data/area-data.json',
+        'utf-8',
+      );
+      const parsedAreaData = JSON.parse(areaData);
+      for (const data of parsedAreaData) {
+        const existingArea = await this.areaRepository.findOne({
+          where: { areaCode: data.areaCode },
+        });
+        if (!existingArea) {
+          const area = this.areaRepository.create(data);
+          await this.areaRepository.save(area);
+        }
+      }
+      return { message: '데이터 추가 성공' };
+    } catch (error) {
+      throw new Error('데이터 추가 실패');
+    }
+  }
+
+  async addTourSpot() {
+    try {
+      const files = await fs.promises.readdir('./src/location/data/');
+      for (const file of files) {
+        if (file.startsWith('areaBasedList') && file.endsWith('.json')) {
+          const filePath = path.join('./src/location/data/', file);
+          const tourSpotData = await fs.promises.readFile(filePath, 'utf-8');
+          const parsedTourSpotData = JSON.parse(tourSpotData);
+          const tourSpotItems = parsedTourSpotData.response.body.items.item;
+          for (const item of tourSpotItems) {
+            const existingTourSpot = await this.tourSpotRepository.findOne({
+              where: { contentId: item.contentid },
+            });
+            if (!existingTourSpot) {
+              const tourSpot = this.tourSpotRepository.create({
+                addr1: item.addr1,
+                addr2: item.addr2,
+                areaCode: item.areacode,
+                bookTour: item.booktour,
+                cat1: item.cat1,
+                cat2: item.cat2,
+                cat3: item.cat3,
+                contentId: item.contentid,
+                contentTypeId: item.contenttypeid,
+                createdTime: item.createdtime,
+                firstImage: item.firstimage,
+                firstImage2: item.firstimage2,
+                cpyrhtDivCd: item.cpyrhtDivCd,
+                mapX: item.mapx,
+                mapY: item.mapy,
+                mlevel: item.mlevel,
+                modifiedTime: item.modifiedtime,
+                sigunguCode: item.sigungucode,
+                tel: item.tel,
+                title: item.title,
+                zipCode: item.zipcode,
+              });
+              await this.tourSpotRepository.save(tourSpot);
+            }
+          }
+        }
+      }
+      return { message: '데이터 추가 성공' };
+    } catch (error) {
+      throw new Error('데이터 추가 실패');
+    }
+  }
+
+  async findAllTourSpot() {
+    const tourSpots = await await this.tourSpotRepository.find();
+    return tourSpots;
   }
 }
