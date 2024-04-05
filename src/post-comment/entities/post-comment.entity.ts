@@ -23,7 +23,7 @@ export class PostComment {
   @Column({ type: 'int', nullable: false })
   postId: number;
 
-  @Column({ type: 'varchar', nullable: false })
+  @Column({ type: 'varchar', nullable: false, default: '' })
   content: string;
 
   @CreateDateColumn()

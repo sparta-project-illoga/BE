@@ -6,18 +6,21 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { User } from 'src/user/entities/user.entity';
 import { UserInfo } from 'src/utils/userInfo.decorator';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('post')
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
   // 게시물 생성
+  @UseGuards(AuthGuard('jwt'))
   @Post()
   async createPost(
     @UserInfo() user: User,
@@ -39,11 +42,13 @@ export class PostController {
     return post;
   }
   // 게시물 삭제
+  @UseGuards(AuthGuard('jwt'))
   @Delete(':postId')
   async removePost(@UserInfo() user: User, @Param('postId') postId: number) {
     return this.postService.removePost(user, postId);
   }
   // 게시물 수정
+  @UseGuards(AuthGuard('jwt'))
   @Patch(':postId')
   async updatePost(
     @Param('postId') postId: number,

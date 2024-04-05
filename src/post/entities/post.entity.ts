@@ -28,6 +28,9 @@ export class Post {
   @Column({ type: 'varchar', nullable: false })
   content: string;
 
+  @Column({ type: 'varchar', nullable: false })
+  region: string;
+
   @Column({ type: 'varchar', nullable: true })
   image?: string;
 
