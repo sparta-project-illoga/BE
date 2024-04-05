@@ -14,7 +14,6 @@ import { IsEmail, IsEnum, IsNumber, IsString } from 'class-validator';
 import { Exclude } from 'class-transformer';
 import { Post } from 'src/post/entities/post.entity';
 import { PostComment } from 'src/post-comment/entities/post-comment.entity';
-import { Local } from 'src/local/entities/local.entity';
 import { Location } from 'src/location/entities/location.entity';
 import { ChatContent } from 'src/chat/entities/chat_contents.entity';
 import { Member } from 'src/member/entities/member.entity';
@@ -73,9 +72,6 @@ export class User {
   @OneToMany(() => PostComment, (postComment) => postComment.user)
   postComment: PostComment[];
 
-  @OneToMany(() => Local, (local) => local.user)
-  local: Local[];
-
   @OneToOne(() => Location, (location) => location.user)
   @JoinColumn()
   location: Location
@@ -86,3 +82,4 @@ export class User {
   @OneToMany(() => Member, (member) => member.user)
   member: Member[];
 }
+
