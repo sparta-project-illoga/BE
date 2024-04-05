@@ -26,6 +26,9 @@ import { Schedule } from './schedule/entities/schedule.entity';
 import { Place } from './plan/entities/place.entity';
 import { MemberModule } from './member/member.module';
 import { Member } from './member/entities/member.entity';
+import { ChatModule } from './chat/chat.module';
+import { ChatRoom } from './chat/entities/chat_rooms.entity';
+import { ChatContent } from './chat/entities/chat_contents.entity';
 import { Area } from './location/entities/area.entity';
 import { TourSpot } from './location/entities/tour-spot.entity';
 import { CategoryModule } from './category/category.module';
@@ -54,6 +57,8 @@ const typeOrmModuleOptions = {
       Category,
       Area,
       TourSpot,
+      ChatRoom,
+      ChatContent
     ], // 엔티티는 반드시 여기에 명시!
     synchronize: configService.get('DB_SYNC'),
     logging: true,
@@ -87,9 +92,11 @@ const typeOrmModuleOptions = {
     ScheduleModule,
     ScheduleModule,
     MemberModule,
-    CategoryModule,
+
+    ChatModule,
+    CategoryModule
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
