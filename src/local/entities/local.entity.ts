@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 
 @Entity({
-  name: 'Locals',
+  name: 'locals',
 })
 export class Local {
   @PrimaryGeneratedColumn()
