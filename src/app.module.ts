@@ -29,7 +29,6 @@ import { Member } from './member/entities/member.entity';
 import { Area } from './location/entities/area.entity';
 import { TourSpot } from './location/entities/tour-spot.entity';
 import { CategoryModule } from './category/category.module';
-import { Local } from './local/entities/local.entity';
 
 const typeOrmModuleOptions = {
   useFactory: async (
@@ -46,7 +45,6 @@ const typeOrmModuleOptions = {
       User,
       Travel,
       Plan,
-      Local,
       Schedule,
       Place,
       Post,
@@ -54,6 +52,8 @@ const typeOrmModuleOptions = {
       Location,
       Member,
       Category,
+      Area,
+      TourSpot,
     ], // 엔티티는 반드시 여기에 명시!
     synchronize: configService.get('DB_SYNC'),
     logging: true,
