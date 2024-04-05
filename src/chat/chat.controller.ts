@@ -1,14 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpStatus } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
-import { CreateMessageDto } from './dto/create-message.dto';
 import { Members } from 'src/member/decorators/member.decorator';
 import { MemberType } from 'src/member/types/member.type';
 import { UserInfo } from 'src/utils/userInfo.decorator';
 import { User } from 'src/user/entities/user.entity';
 import { MemberGuard } from 'src/utils/member.guard';
 import { AuthGuard } from '@nestjs/passport';
+import { CreateMessageDto } from './dto/update-chat.dto';
 
+//해당 유저/플랜에 해당되는 멤버만
+@UseGuards(AuthGuard('jwt'))
+@UseGuards(MemberGuard)
 @Controller('chat')
 export class ChatController {
   constructor(private readonly chatService: ChatService) { }
@@ -27,23 +30,27 @@ export class ChatController {
     }
   }
 
-  @Get()
-  findAll() {
-    return this.chatService.findAll();
+  //채팅 입력하기
+  //user가 null로 읽힘
+  @Post('content/:roomId')
+  async create(@Param('roomId') roomId: number, @UserInfo() user: User, @Body() createMessageDto: CreateMessageDto) {
+    const text = await this.chatService.createMessage(roomId, user.id, createMessageDto.text);
+    return {
+      statusCode: HttpStatus.OK,
+      message: '채팅 입력에 성공했습니다.',
+      text,
+    }
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.chatService.findOne(+id);
-  }
+  //채팅 내용 조회
+  @Get('content/:roomId')
+  async findAll(@Param('roomId') roomId: number) {
+    const text = await this.chatService.findAll(roomId);
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateChatDto: UpdateChatDto) {
-    return this.chatService.update(+id, updateChatDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.chatService.remove(+id);
+    return {
+      statusCode: HttpStatus.OK,
+      message: '채팅방 내용 조회에 성공했습니다.',
+      text,
+    }
   }
 }

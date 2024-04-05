@@ -8,11 +8,12 @@ import { ChatRoom } from './entities/chat_rooms.entity';
 import { ChatContent } from './entities/chat_contents.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Plan } from 'src/plan/entities/plan.entity';
+import { MemberModule } from 'src/member/member.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ChatRoom, ChatContent, User, Plan]),
-    PassportModule, EventsModule,
+    PassportModule, EventsModule, MemberModule
   ],
   controllers: [ChatController],
   providers: [ChatService],
