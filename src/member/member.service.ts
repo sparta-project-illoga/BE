@@ -4,12 +4,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Plan } from 'src/plan/entities/plan.entity';
 import { Member } from './entities/member.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class MemberService {
   constructor(
     @InjectRepository(Member) private readonly memberRepository: Repository<Member>,
     @InjectRepository(Plan) private readonly planRepository: Repository<Plan>,
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) { }
 
   async create(planId: number, userId: number) {
@@ -25,6 +27,8 @@ export class MemberService {
     if (check) {
       throw new BadRequestException('이미 해당 플랜에 초대된 멤버입니다.');
     }
+
+    const user = await this.userRepository.findOneBy({ id: userId });
 
     const member = await this.memberRepository.save({ planId, userId, name: user.nickname });
 

@@ -10,7 +10,7 @@ import { User } from 'src/user/entities/user.entity';
 @Global()
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Member, Plan]),
+    TypeOrmModule.forFeature([Member, Plan, User]),
     PassportModule,
   ],
   controllers: [MemberController],
