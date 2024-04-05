@@ -50,7 +50,7 @@ export class CategoryService {
   async remove(categoryId: number) {
     const category = await this.categoryRepository.find({ where: { categoryId } });
 
-    if (_.isNull(category)) {
+    if (!category) {
       throw new BadRequestException('이미 삭제된 카테고리입니다.');
     }
 

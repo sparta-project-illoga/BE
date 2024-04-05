@@ -6,6 +6,7 @@ import { Repository, ReturnDocument } from 'typeorm';
 import { Plan } from './entities/plan.entity';
 import { ScheduleService } from '../schedule/schedule.service';
 import { Place } from './entities/place.entity';
+import { CategoryService } from 'src/category/category.service';
 
 @Injectable()
 export class PlanService {
@@ -15,7 +16,8 @@ export class PlanService {
     private planRepository: Repository<Plan>,
     @InjectRepository(Place)
     private placeRepository: Repository<Place>,
-    private scheduleService: ScheduleService
+    private scheduleService: ScheduleService,
+    private categoryService: CategoryService
   ) { }
 
   // 1. 플랜 생성 (단 총 예산과 일정은 추가가 안됨)
@@ -52,14 +54,14 @@ export class PlanService {
 
     const totalschedule = await this.scheduleService.findAll(id);
 
-    const totaldate = totalschedule.schedule.length;
+    const lastScehdule = await this.scheduleService.lastScehdule(id);
 
     const totalmoney = totalschedule.schedule.reduce((total, schedule) => total + schedule.money, 0);
 
     await this.planRepository.update(
       {id},
       {
-        totaldate,
+        totaldate : lastScehdule.date,
         totalmoney
       }
     );
@@ -75,7 +77,7 @@ export class PlanService {
 
     const totalschedule = await this.scheduleService.findAll(id);
 
-    const totaldate = totalschedule.schedule.length;
+    const lastScehdule = await this.scheduleService.lastScehdule(id);
 
     const totalmoney = totalschedule.schedule.reduce((total, schedule) => total + schedule.money, 0);
 
@@ -83,11 +85,17 @@ export class PlanService {
       { id },
       {
         name,
-        totaldate,
+        totaldate : lastScehdule.date,
         totalmoney,
       });
 
-      return totalschedule;
+      const findPlan = await this.planRepository.findOne({
+        where: { id }
+      })
+  
+      const findPlace = await this.placeRepository.find({where: {planId : id}});
+
+      return {findPlan,findPlace,totalschedule};
 
   }
 
@@ -115,7 +123,9 @@ export class PlanService {
 
     const findPlace = await this.placeRepository.find({where: {planId : id}});
 
-    return { findOnePlan,findPlace, findSchedule };
+    const category = await this.categoryService.findAll(id);
+
+    return { findOnePlan,findPlace, category, findSchedule };
   }
 
   // 플랜 삭제(동일 지역이 있을 경우 총 지역에 삭제 x)
@@ -124,12 +134,12 @@ export class PlanService {
       where: { id }
     })
 
-    const findAllSchedule = await this.scheduleService.findAll(id)
-
     await this.planRepository.delete({ id });
     
     await this.scheduleService.removeByplanId(id);
 
-    return { findPlan, findAllSchedule };
+    await this.placeRepository.delete({planId : id});
+
+    return { findPlan };
   }
 }
