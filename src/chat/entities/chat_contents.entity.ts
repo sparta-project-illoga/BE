@@ -1,15 +1,23 @@
-import { Plan } from "src/plan/entities/plan.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { ChatRoom } from "./chat_rooms.entity";
+import { User } from "src/user/entities/user.entity";
 
 
-@Entity({ name: 'contents', })
+@Entity({ name: 'contents' })
 export class ChatContent {
     @PrimaryGeneratedColumn({ type: 'int' })
     contentId: number;
 
     @Column({ type: 'int', nullable: false })
     roomId: number;
+
+    //사용자 추가
+    @Column()
+    userId: number;
+
+    //추가함 - 채팅방 입장 이름
+    @Column()
+    name: string;
 
     @Column({ type: 'text', nullable: false })
     chat: string;
@@ -23,4 +31,8 @@ export class ChatContent {
     @ManyToOne(() => ChatRoom, (room) => room.content, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'roomId' })
     room: ChatRoom;
+
+    @ManyToOne(() => User, (user) => user.content, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'userId' })
+    user: User;
 }
