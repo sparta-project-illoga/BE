@@ -1,12 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards } from '@nestjs/common';
 import { MemberService } from './member.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
+import { Members } from './decorators/member.decorator';
+import { MemberType } from './types/member.type';
+import { AuthGuard } from '@nestjs/passport';
+import { MemberGuard } from 'src/utils/member.guard';
 
+@UseGuards(AuthGuard('jwt'))
+@UseGuards(MemberGuard)
 @Controller('member')
 export class MemberController {
   constructor(private readonly memberService: MemberService) { }
 
+  //멤버 추가
+  //리더만 가능
+  @Members(MemberType.Leader)
   @Post(':planId')
   async create(@Param('planId') planId: number, @Body() createMemberDto: CreateMemberDto) {
     const member = await this.memberService.create(planId, createMemberDto.userId);
@@ -18,6 +27,7 @@ export class MemberController {
     };
   }
 
+  //멤버 조회
   @Get(':planId')
   async findAll(@Param('planId') planId: number) {
     const members = await this.memberService.findAll(planId);
@@ -29,11 +39,9 @@ export class MemberController {
     };
   }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.memberService.findOne(+id);
-  // }
-
+  //멤버 수정
+  //리더만 가능
+  @Members(MemberType.Leader)
   @Patch(':memberId')
   async update(@Param('memberId') memberId: number, @Body() updateMemberDto: UpdateMemberDto) {
     const member = await this.memberService.update(memberId, updateMemberDto.userId);
@@ -46,6 +54,9 @@ export class MemberController {
 
   }
 
+  //멤버 삭제
+  //리더만 가능
+  @Members(MemberType.Leader)
   @Delete(':memberId')
   async remove(@Param('memberId') memberId: number) {
     const member = await this.memberService.remove(memberId);

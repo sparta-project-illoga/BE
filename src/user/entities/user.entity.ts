@@ -15,6 +15,8 @@ import { Exclude } from 'class-transformer';
 import { Post } from 'src/post/entities/post.entity';
 import { PostComment } from 'src/post-comment/entities/post-comment.entity';
 import { Location } from 'src/location/entities/location.entity';
+import { ChatContent } from 'src/chat/entities/chat_contents.entity';
+import { Member } from 'src/member/entities/member.entity';
 
 @Index('email', ['email'], { unique: true })
 @Entity({
@@ -48,7 +50,7 @@ export class User {
   role: Role;
 
   @Column({ type: 'varchar', nullable: true })
-  image_url?: string;
+  image_url?: string
 
   @CreateDateColumn({ type: 'timestamp', nullable: false })
   created_at: Date;
@@ -72,5 +74,12 @@ export class User {
 
   @OneToOne(() => Location, (location) => location.user)
   @JoinColumn()
-  location: Location;
+  location: Location
+
+  @OneToMany(() => ChatContent, (content) => content.user)
+  content: ChatContent[];
+
+  @OneToMany(() => Member, (member) => member.user)
+  member: Member[];
 }
+
