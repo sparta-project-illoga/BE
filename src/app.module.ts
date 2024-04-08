@@ -14,6 +14,12 @@ import { PostCommentModule } from './post-comment/post-comment.module';
 import { LocationModule } from './location/location.module';
 import { PostModule } from './post/post.module';
 import { ScheduleModule } from './schedule/schedule.module';
+import { ChatModule } from './chat/chat.module';
+import { CategoryModule } from './category/category.module';
+import { MemberModule } from './member/member.module';
+import { AwsModule } from './aws/aws.module';
+import { UtilsModule } from './utils/utils.module';
+import { MailerModule } from './mailer/mailer.module';
 
 import { User } from './user/entities/user.entity';
 import { Travel } from './travel/entities/travel.entity';
@@ -24,14 +30,11 @@ import { PostComment } from './post-comment/entities/post-comment.entity';
 import { Post } from './post/entities/post.entity';
 import { Schedule } from './schedule/entities/schedule.entity';
 import { Place } from './plan/entities/place.entity';
-import { MemberModule } from './member/member.module';
 import { Member } from './member/entities/member.entity';
-import { ChatModule } from './chat/chat.module';
 import { ChatRoom } from './chat/entities/chat_rooms.entity';
 import { ChatContent } from './chat/entities/chat_contents.entity';
 import { Area } from './location/entities/area.entity';
 import { TourSpot } from './location/entities/tour-spot.entity';
-import { CategoryModule } from './category/category.module';
 
 const typeOrmModuleOptions = {
   useFactory: async (
@@ -92,9 +95,11 @@ const typeOrmModuleOptions = {
     ScheduleModule,
     ScheduleModule,
     MemberModule,
-
     ChatModule,
-    CategoryModule
+    CategoryModule,
+    AwsModule,
+    UtilsModule,
+    MailerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
