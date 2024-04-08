@@ -39,11 +39,14 @@ export class User {
   @Column({ type: 'varchar', unique: false, nullable: false })
   nickname: string;
 
-  @Column({ type: 'int', unique: false, nullable: false })
-  phone: number;
+  @Column({ type: 'varchar', unique: false, nullable: false })
+  phone: string;
 
   @Column({ type: 'boolean', unique: false, nullable: true, default: false })
   is_cert?: boolean;
+
+  @Column({ type: 'boolean', unique: false, nullable: true, default: false })
+  is_verify: boolean;
 
   @IsEnum(Role)
   @Column({ type: 'enum', enum: Role, default: Role.User })
