@@ -6,6 +6,10 @@ import { UserController } from './user.controller';
 import { User } from './entities/user.entity';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { AwsModule } from 'src/aws/aws.module';
+import { UtilsModule } from 'src/utils/utils.module';
+import { MailerModule } from 'src/mailer/mailer.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [
@@ -16,6 +20,10 @@ import { JwtModule } from '@nestjs/jwt';
       }),
       inject: [ConfigService],
     }),
+    AwsModule,
+    UtilsModule,
+    MailerModule,
+    RedisModule
   ],
   controllers: [UserController],
   providers: [UserService],
