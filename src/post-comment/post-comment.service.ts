@@ -29,7 +29,7 @@ export class PostCommentService {
     const post = await this.postService.findOnePostByPostId(postId);
     if (!post) throw new NotFoundException('존재하지 않는 게시글입니다.');
     const comment = await this.postCommentRepository.save({
-      createPostCommentDto,
+      content: createPostCommentDto.content,
       userId,
       postId,
     });
@@ -46,6 +46,7 @@ export class PostCommentService {
     return comment;
   }
 
+  // 댓글 수정
   async updateComment(
     postId: number,
     commentId: number,
@@ -71,6 +72,7 @@ export class PostCommentService {
     });
   }
 
+  // 댓글 삭제
   async removeComment(postId: number, commentId: number, userId: number) {
     const post = await this.postService.findOnePostByPostId(postId);
     if (!post) throw new NotFoundException('존재하지 않는 게시글입니다.');
