@@ -9,6 +9,9 @@ import { Area } from './entities/area.entity';
 import { TourSpot } from './entities/tour-spot.entity';
 import * as fs from 'fs';
 import * as path from 'path';
+import { PuppeteerService } from 'src/utils/puppeteer.service';
+import { TourSpotTag } from './entities/tour-spot-tag.entity';
+import { Tag } from './entities/tag.entity';
 @Injectable()
 export class LocationService {
   constructor(
@@ -20,7 +23,12 @@ export class LocationService {
     private readonly areaRepository: Repository<Area>,
     @InjectRepository(TourSpot)
     private readonly tourSpotRepository: Repository<TourSpot>,
+    @InjectRepository(TourSpotTag)
+    private readonly tourSpotTagRepository: Repository<TourSpotTag>,
+    @InjectRepository(Tag)
+    private readonly tagRepository: Repository<Tag>,
     private readonly configService: ConfigService,
+    private readonly puppeteerService: PuppeteerService,
   ) {}
   // 사용자 위치 정보 업데이트
   async updateLocation(
@@ -153,7 +161,90 @@ export class LocationService {
   }
 
   async findAllTourSpot() {
-    const tourSpots = await await this.tourSpotRepository.find();
-    return tourSpots;
+    const tourSpots = await this.tourSpotRepository.find({
+      relations: ['tourSpotTags', 'tourSpotTags.tag'],
+    });
+    return tourSpots.map((tourSpot) => ({
+      ...tourSpot,
+      tourSpotTags: tourSpot.tourSpotTags.map(
+        (tourSpotTag) => tourSpotTag.tag.name,
+      ),
+    }));
+  }
+
+  // 여행지 원본 조회
+  async searchTourSpot(areaCode: string) {
+    try {
+      const tourSpots = await this.tourSpotRepository.find({
+        where: { areaCode: areaCode },
+      });
+      return tourSpots;
+    } catch (error) {
+      throw new Error('여행지 검색에 실패했습니다.');
+    }
+  }
+
+  // 여행지 검색
+  async searchTourSpotByKeyword(keyword: string) {
+    try {
+      const tourSpots = await this.tourSpotRepository
+        .createQueryBuilder('tourSpot')
+        .leftJoinAndSelect('tourSpot.tourSpotTags', 'tourSpotTags')
+        .leftJoinAndSelect('tourSpotTags.tag', 'tag')
+        .addSelect(['tourSpot.title', 'tag.name'])
+        .where('tourSpot.title LIKE :keyword', { keyword: `%${keyword}%` })
+        .orWhere('tag.name LIKE :keyword', { keyword: `%${keyword}%` })
+        .getMany();
+
+      const tourSpotsWithTags = tourSpots.map((tourSpot) => {
+        const { tourSpotTags, ...tourSpotWithoutTags } = tourSpot;
+        return {
+          ...tourSpotWithoutTags,
+          tagNames: tourSpotTags.map((tourSpotTag) => tourSpotTag.tag.name),
+        };
+      });
+
+      return tourSpotsWithTags;
+    } catch (error) {
+      throw new Error('여행지를 찾을수 없습니다.');
+    }
+  }
+
+  // 여행지에 태그 스크롤링해서 넣기
+  async searchTourSpotByPuppeteer() {
+    try {
+      const tourSpots = await this.tourSpotRepository.find();
+
+      for (const tourSpot of tourSpots) {
+        const keyword = tourSpot.title;
+        const scrapedData =
+          await this.puppeteerService.getSearchContent(keyword);
+        console.log(scrapedData);
+
+        await this.tourSpotTagRepository.delete({
+          tourSpot: { id: tourSpot.id },
+        });
+
+        const tourSpotTagsPromises = scrapedData.flatMap((data) =>
+          data.tags.map(async (tagName) => {
+            const tourSpotTag = new TourSpotTag();
+            let tag = await this.tagRepository.findOne({
+              where: { name: tagName },
+            });
+            if (!tag) {
+              tag = this.tagRepository.create({ name: tagName });
+              tag = await this.tagRepository.save(tag);
+            }
+            tourSpotTag.tourSpot = tourSpot;
+            tourSpotTag.tag = tag;
+            return tourSpotTag;
+          }),
+        );
+        const tourSpotTags = await Promise.all(tourSpotTagsPromises);
+        await this.tourSpotTagRepository.save(tourSpotTags);
+      }
+    } catch (error) {
+      throw new Error('여행지 검색에 실패했습니다.');
+    }
   }
 }
