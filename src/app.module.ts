@@ -35,6 +35,8 @@ import { ChatRoom } from './chat/entities/chat_rooms.entity';
 import { ChatContent } from './chat/entities/chat_contents.entity';
 import { Area } from './location/entities/area.entity';
 import { TourSpot } from './location/entities/tour-spot.entity';
+import { Tag } from './location/entities/tag.entity';
+import { TourSpotTag } from './location/entities/tour-spot-tag.entity';
 
 const typeOrmModuleOptions = {
   useFactory: async (
@@ -61,7 +63,9 @@ const typeOrmModuleOptions = {
       Area,
       TourSpot,
       ChatRoom,
-      ChatContent
+      ChatContent,
+      Tag,
+      TourSpotTag,
     ], // 엔티티는 반드시 여기에 명시!
     synchronize: configService.get('DB_SYNC'),
     logging: true,
@@ -104,4 +108,4 @@ const typeOrmModuleOptions = {
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
