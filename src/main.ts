@@ -12,6 +12,7 @@ async function bootstrap() {
     .setTitle('Illoga-swagger')
     .setDescription('API description')
     .setVersion('1.0.0')
+    .addCookieAuth('jwt', { type: 'http', in: 'cookie' })
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, document);
@@ -23,7 +24,6 @@ async function bootstrap() {
   );
 
   app.use(cookieParser());
-
 
   app.enableCors();
 
