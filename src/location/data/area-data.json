@@ -9,11 +9,11 @@
   { "areaCode": "8", "name": "세종특별자치시" },
   { "areaCode": "31", "name": "경기도" },
   { "areaCode": "32", "name": "강원특별자치도" },
-  { "areaCode": "33", "name": "충청북도" },
-  { "areaCode": "34", "name": "충청남도" },
-  { "areaCode": "35", "name": "경상북도" },
-  { "areaCode": "36", "name": "경상남도" },
+  { "areaCode": "33", "name": "충북" },
+  { "areaCode": "34", "name": "충남" },
+  { "areaCode": "35", "name": "경북" },
+  { "areaCode": "36", "name": "경남" },
   { "areaCode": "37", "name": "전북특별자치도" },
-  { "areaCode": "38", "name": "전라남도" },
-  { "areaCode": "39", "name": "제주도" }
+  { "areaCode": "38", "name": "전남" },
+  { "areaCode": "39", "name": "제주특별자치도" }
 ]
