@@ -1,15 +1,29 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as nodemailer from 'nodemailer'
+import Mail from "nodemailer/lib/mailer";
 import { RedisService } from "src/redis/redis.service";
 
 @Injectable()
 export class MailerService {
   // nodemailer에서 제공하는 Transporter 객체 생성
+  private transporter: Mail
   constructor(
     private readonly configService: ConfigService,
     private readonly redisService: RedisService,
-  ) {}
+  ) {
+    this.transporter = nodemailer.createTransport({
+      // SMTP 설정
+      service: 'gmail',
+      host: 'smtp.gmail.com', //smtp 호스트
+      port: 587,
+      secure: false,
+      auth: {
+        user: this.configService.get<string>('GMAIL_ID'),
+        pass: this.configService.get<string>('GMAIL_SECRET'),
+      }
+    });
+  }
 
   async sendVerifyToken(email: string) {
 
@@ -22,31 +36,21 @@ export class MailerService {
     const randomCode = getRandomCode(111111, 999999);
 
     const redisClient = this.redisService.getClient();
-    await redisClient.set(`verification_code:${email}`, randomCode, 'EX', 3600); // 3600초(1시간) 동안 유효
-    console.log(redisClient)
-    const transport = nodemailer.createTransport({
-      service: 'Gmail',
-      secure: true,
-      auth: {
-        type: 'OAuth2',
-        user: this.configService.get<string>('GMAIL_ID'), // ConfigService를 사용하여 환경 변수 접근
-        clientId: this.configService.get<string>('GMAIL_CLIENT_ID'),
-        clientSecret: this.configService.get<string>('GMAIL_CLIENT_SECRET'),
-        refreshToken: this.configService.get<string>('GMAIL_REFRESH_TOKEN'),
-        accessToken: this.configService.get<string>('GMAIL_ACCESS_TOKEN'),
-        expires: 3600,
-      },
-    });
+    await redisClient.del(`verification_code:${email}:unverified`); // 이전에 보낸 키 삭제
+    const ser = await redisClient.set(`verification_code:${email}:unverified`, randomCode, 'EX', 300); // 300초(5분) 동안 유효
 
-    const sendResult = await transport.sendMail({
-      from: {
-        name: '인증관리자',
-        address: this.configService.get<string>('GMAIL_ID'),
-      },
-      subject: '[illoga] 이메일 인증번호입니다.',
-      to: [email],
-      text: `The Authentication code is ${randomCode}`,
-    });
-    return sendResult.accepted.length > 0;
+    try {
+      await this.transporter.sendMail({
+        from: this.configService.get<string>('GMAIL_ID'), 
+        to: email, //string or Array
+        subject: '[illoga] 이메일 인증번호입니다.',
+        text: `The Authentication code is ${randomCode}`,
+
+      });
+      console.log('메일이 전송되었습니다')
+    } catch (error) {
+      console.error('메일 전송 중 오류가 발생했습니다:', error);
+      throw new Error(`메일 전송 실패: ${error.message}`);
+    }
   }
 }

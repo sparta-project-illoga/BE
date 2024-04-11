@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, UseGuards, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 import { RegisterDto } from './dto/register.dto';
 import { UpdateUserDto } from './dto/user.update.dto';
@@ -15,7 +15,21 @@ export class UserController {
 
   //회원가입
   @Post('register')
-  async register(@Body() registerDto: RegisterDto) {
+  async register(
+    @Query('type') type: string,
+    @Body() body: any) {
+    // 이메일 인증번호 전송 로직 실행
+    if (type==='sendmail') {
+      const email = body.email
+      return await this.userService.sendVerification(email)
+    }
+    // 인증번호 검증 로직 실행
+    if (type==='verifycode') {
+      const { email, code } = body;
+      return await this.userService.verifyUser(email, code);
+    }
+
+    const registerDto: RegisterDto = body
     return await this.userService.register(registerDto);
   }
 
@@ -62,18 +76,6 @@ export class UserController {
       file
       );
     return updatedProfile
-  }
-
-  // 인증메일 전송
-  @Post('sendverify')
-  async sendVerification(@Body('email') email: string) {
-    return await this.userService.sendVerification(email)
-  }
-
-  // 인증번호 검증
-  @Post('verifycode')
-  async verifyUser(@Body('email') email: string, @Body('code') code: string) {
-    return await this.userService.verifyUser(email, code)
   }
 
   // TODO 비밀번호 확인
