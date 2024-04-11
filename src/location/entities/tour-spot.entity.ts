@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  OneToMany,
+  Index,
+} from 'typeorm';
+import { TourSpotTag } from './tour-spot-tag.entity';
 
 @Entity({
   name: 'tour_spots',
@@ -65,8 +72,12 @@ export class TourSpot {
   tel: string;
 
   @Column()
+  @Index()
   title: string;
 
   @Column()
   zipCode: string;
+
+  @OneToMany(() => TourSpotTag, (tourSpotTag) => tourSpotTag.tourSpot)
+  tourSpotTags: TourSpotTag[];
 }

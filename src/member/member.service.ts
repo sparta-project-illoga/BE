@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Plan } from 'src/plan/entities/plan.entity';
 import { Member } from './entities/member.entity';
 import { User } from 'src/user/entities/user.entity';
+import { EventsGateway } from 'src/events/events.gateway';
 
 @Injectable()
 export class MemberService {
@@ -12,6 +13,9 @@ export class MemberService {
     @InjectRepository(Member) private readonly memberRepository: Repository<Member>,
     @InjectRepository(Plan) private readonly planRepository: Repository<Plan>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+
+
+    private eventGateway: EventsGateway,
   ) { }
 
   async create(planId: number, userId: number) {
@@ -31,6 +35,8 @@ export class MemberService {
     const user = await this.userRepository.findOneBy({ id: userId });
 
     const member = await this.memberRepository.save({ planId, userId, name: user.nickname });
+
+    this.eventGateway.addMember(member);
 
     return member;
   }
