@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { User } from 'src/user/entities/user.entity';
+import { Area } from 'src/location/entities/area.entity';
 
 @Injectable()
 export class PostService {
@@ -17,6 +18,8 @@ export class PostService {
     private readonly postRepository: Repository<Post>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Area)
+    private readonly areaRepository: Repository<Area>,
   ) {}
 
   // 게시물 생성
@@ -28,13 +31,19 @@ export class PostService {
     if (!users || !users.location) {
       throw new BadRequestException('사용자 또는 인증지역을 찾을 수 없습니다.');
     }
+    const region = users.location.region_1depth_name;
+    const area = await this.areaRepository.findOne({ where: { name: region } });
+    if (!area) {
+      throw new BadRequestException('해당 지역 코드를 찾을 수 없습니다.');
+    }
 
     const newPost = new Post();
     newPost.title = createPostDto.title;
     newPost.content = createPostDto.content;
-    newPost.image = createPostDto.image;
+    newPost.image = createPostDto.image; //TODO - 이미지 추가 기능해야함! S3
     newPost.userId = user.id;
     newPost.region = users.location.region_1depth_name;
+    newPost.areaCode = area.areaCode;
     const post = await this.postRepository.save(newPost);
     return post;
   }
@@ -52,6 +61,15 @@ export class PostService {
       throw new NotFoundException('게시물을 찾을 수 없습니다.');
     }
     return post;
+  }
+
+  // 지역별 게시물 조회
+  async getPostsByAreaCode(areaCode: number) {
+    const posts = await this.postRepository.find({
+      where: { areaCode },
+    });
+
+    return posts;
   }
 
   // 게시물 수정

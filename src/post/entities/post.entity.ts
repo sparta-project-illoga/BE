@@ -1,3 +1,4 @@
+import { Area } from 'src/location/entities/area.entity';
 import { PostComment } from 'src/post-comment/entities/post-comment.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
@@ -31,6 +32,9 @@ export class Post {
   @Column({ type: 'varchar', nullable: false })
   region: string;
 
+  @Column({ type: 'int', nullable: false })
+  areaCode: number;
+
   @Column({ type: 'varchar', nullable: true })
   image?: string;
 
@@ -48,4 +52,7 @@ export class Post {
 
   @OneToMany(() => PostComment, (postComment) => postComment.user)
   postComment: PostComment[];
+
+  @ManyToOne(() => Area)
+  area: Area;
 }
