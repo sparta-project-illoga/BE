@@ -1,4 +1,5 @@
 export enum CategoryName {
+    test = 'test',
     MOUNTAIN = 'MOUNTAIN',
     OCEAN = 'OCEAN',
     REST = 'REST',

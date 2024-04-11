@@ -3,14 +3,19 @@ import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Category } from './entities/category.entity';
 
 @UseGuards(AuthGuard('jwt'))
+@ApiTags('카테고리 API')
 @Controller('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) { }
 
   //카테고리 생성
   @Post(':planId')
+  @ApiOperation({ summary: '카테고리 생성 API', description: '카테고리를 생성한다.' })
+  @ApiResponse({ description: '카테고리를 생성한다.', type: Category })
   async create(@Param('planId') planId: number, @Body() createCategoryDto: CreateCategoryDto) {
     console.log('카테고리 생성 planId, category_name : ', planId, createCategoryDto.category_name);
     const category = await this.categoryService.create(planId, createCategoryDto.category_name);
@@ -24,6 +29,8 @@ export class CategoryController {
 
   //플랜에 해당하는 카테고리 조회
   @Get(':planId')
+  @ApiOperation({ summary: '카테고리 조회 API', description: '플랜에 저장된 카테고리를 조회한다.' })
+  //@ApiResponse({ description: '플랜에 저장된 카테고리를 조회한다.', type: Category })
   async findAll(@Param('planId') planId: number) {
     const categories = await this.categoryService.findAll(planId);
 
@@ -36,6 +43,7 @@ export class CategoryController {
 
   //카테고리 수정
   @Patch(':categoryId')
+  @ApiOperation({ summary: '카테고리 수정 API', description: '카테고리를 수정한다.' })
   async update(@Param('categoryId') categoryId: number, @Body() updateCategoryDto: UpdateCategoryDto) {
     const category = await this.categoryService.update(categoryId, updateCategoryDto.category_name);
 
@@ -48,6 +56,7 @@ export class CategoryController {
 
   //카테고리 삭제
   @Delete(':categoryId')
+  @ApiOperation({ summary: '카테고리 삭제 API', description: '카테고리를 삭제한다.' })
   async remove(@Param('categoryId') categoryId: number) {
     const category = await this.categoryService.remove(categoryId);
 

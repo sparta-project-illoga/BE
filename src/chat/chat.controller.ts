@@ -8,11 +8,13 @@ import { User } from 'src/user/entities/user.entity';
 import { MemberGuard } from 'src/utils/member.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateMessageDto } from './dto/update-chat.dto';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 //해당 유저/플랜에 해당되는 멤버만
 @UseGuards(AuthGuard('jwt'))
 @UseGuards(MemberGuard)
 @Controller('chat')
+@ApiTags('채팅 API')
 export class ChatController {
   constructor(private readonly chatService: ChatService) { }
 
@@ -20,6 +22,8 @@ export class ChatController {
   //memberguard : leader만 가능
   @Members(MemberType.Leader)
   @Post(':planId')
+  @ApiOperation({ summary: '채팅방 생성 API', description: '플랜 멤버들을 포함한 채팅방을 생성한다.' })
+
   async createRoom(@Param('planId') planId: number, @Body() createChatDto: CreateChatDto) {
     console.log("채팅방 만들기 planId,채팅방이름 : ", planId, createChatDto.name);
     const room = await this.chatService.createRoom(planId, createChatDto.name);
@@ -33,6 +37,7 @@ export class ChatController {
   //채팅 입력하기
   //user가 null로 읽힘
   @Post('content/:roomId')
+  @ApiOperation({ summary: '채팅 입력 API', description: '채팅방에서 채팅을 입력한다.' })
   async create(@Param('roomId') roomId: number, @UserInfo() user: User, @Body() createMessageDto: CreateMessageDto) {
     const text = await this.chatService.createMessage(roomId, user.id, createMessageDto.text);
     return {
@@ -44,6 +49,7 @@ export class ChatController {
 
   //채팅 내용 조회
   @Get('content/:roomId')
+  @ApiOperation({ summary: '채팅 내용 조회 API', description: '채팅방에서 입력한 채팅들을 조회한다.' })
   async findAll(@Param('roomId') roomId: number) {
     const text = await this.chatService.findAll(roomId);
 
