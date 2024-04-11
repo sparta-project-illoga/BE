@@ -1,12 +1,12 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Patch,
   Param,
   Delete,
   UseGuards,
+  Post,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -41,12 +41,20 @@ export class PostController {
     const post = await this.postService.findOnePostByPostId(postId);
     return post;
   }
+
+  // 지역별 게시물 조회
+  @Get('region/:areaCode')
+  getPostsByAreaCode(@Param('areaCode') areaCode: number) {
+    return this.postService.getPostsByAreaCode(areaCode);
+  }
+
   // 게시물 삭제
   @UseGuards(AuthGuard('jwt'))
   @Delete(':postId')
   async removePost(@UserInfo() user: User, @Param('postId') postId: number) {
     return this.postService.removePost(user, postId);
   }
+
   // 게시물 수정
   @UseGuards(AuthGuard('jwt'))
   @Patch(':postId')
