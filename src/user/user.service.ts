@@ -36,6 +36,16 @@ export class UserService {
       throw new ConflictException('이미 해당 이메일로 가입된 사용자가 있습니다.',);
     }
 
+  const redisClient = this.redisService.getClient()
+  const key = `verification_code:${registerDto.email}:verified`
+  console.log(registerDto.email)
+  const storedCode = await redisClient.get(key)
+  console.log(storedCode)
+
+  if (!storedCode) {
+    throw new BadRequestException('이메일 인증을 진행해주세요.')
+  }
+
     const hashedPassword = await hash(registerDto.password, 10)
 
     await this.userRepository.save({
@@ -120,16 +130,19 @@ export class UserService {
 
   async verifyUser(email: string, code: string) {
     const redisClient = this.redisService.getClient()
-    const key = `verification_code:${email}`
-    const storedCode = await redisClient.get(key)
+    const unverifiedKey = `verification_code:${email}:unverified`;
+    const verifiedKey = `verification_code:${email}:verified`;
+    const storedCode = await redisClient.get(unverifiedKey)
 
     if (!storedCode) {
       throw new BadRequestException('이메일 발송을 해주세요.')
     }
 
     if (code === storedCode) {
-      // 인증코드가 일치하면 레디스 키를 삭제
-      await redisClient.del(key);
+      // 인증코드가 일치하면 레디스 키의 이름 변경
+      await redisClient.rename(unverifiedKey, verifiedKey);
+       // 변경된 키의 만료 시간을 1시간으로 변경
+      await redisClient.expire(verifiedKey, 3600);
       return {message: '인증이 완료되었습니다.'};
     }
     return {message: '인증번호가 일치하지 않습니다.'}
