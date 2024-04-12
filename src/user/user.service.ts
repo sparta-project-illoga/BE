@@ -1,18 +1,22 @@
-import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import _ from 'lodash';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { compare, hash } from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import *as generator from 'generate-password';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { User } from './entities/user.entity';
+import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UpdateUserDto } from './dto/user.update.dto';
-import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
-import { compare, hash } from 'bcrypt';
-import { LoginDto } from './dto/login.dto';
-import _ from 'lodash';
-import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ConfigService } from '@nestjs/config';
+import { ChangePwDto } from './dto/changepw.dto';
+import { FindPwDto } from './dto/findpw.dto';
 import { UtilsService } from 'src/utils/utils.service';
-import { AwsService } from 'src/aws/aws.service';
 import { MailerService } from 'src/mailer/mailer.service';
+import { AwsService } from 'src/aws/aws.service';
 import { RedisService } from 'src/redis/redis.service';
+
 
 @Injectable()
 export class UserService {
@@ -124,10 +128,73 @@ export class UserService {
     return modifiedUser
   }
 
+  async changePw(id: number, changePwDto: ChangePwDto) {
+    // select: false인 값을 조회하려면 이걸로
+    const user = await this.userRepository
+    .createQueryBuilder("user")
+    .addSelect("user.password")
+    .where("user.id = :id", { id })
+    .getOne();
+    
+      if(!user) {
+        throw new NotFoundException('사용자를 찾을 수 없습니다.');
+      }
+
+  const isMatch = await compare(changePwDto.present_pw, user.password);
+
+  if (isMatch === true) {
+    const hashedPassword = await hash(changePwDto.password, 10);
+    user.password = hashedPassword;
+    await this.userRepository.update(user.id, {password: hashedPassword});
+  } else {
+    throw new NotFoundException('현재 비밀번호와 일치하지 않습니다.');
+  }
+}
+
+  async findPw(findPwDto: FindPwDto) {
+    const user = await this.findByEmail(findPwDto.email)
+
+  if(!user) {
+    throw new NotFoundException('유저를 찾을 수 없습니다.')
+  }
+
+  if (user.name === findPwDto.name && user.phone === findPwDto.phone) {
+    // 임시 비밀번호 생성
+    const tempPassword = generator.generate({
+      length: 8,
+      numbers: true,
+      uppercase: true,
+      lowercase: false,
+      excludeSimilarCharacters: true,
+    });
+
+    // 임시 비밀번호로 비밀번호 변경
+    const hashedPassword = await hash(tempPassword, 10);
+    user.password = hashedPassword;
+    await this.userRepository.update(user.id, {password: hashedPassword});
+
+    // 정보가 일치하면 임시 비밀번호 전송
+    await this.mailerService.sendNewPass(user.email, tempPassword)
+  } else {
+    throw new NotFoundException('입력하신 정보와 일치하는 사용자가 없습니다.');
+  }
+  }
+  
+  async remove(userId: number, id: number) {
+    const user = await this.findById(id)
+
+    if(userId !== id) {
+      throw new NotFoundException('유저를 찾을 수 없습니다.')
+    }
+
+    await this.userRepository.delete({id : id})
+    return {message: '회원탈퇴가 완료되었습니다.'}
+  }
+
   async sendVerification(email: string) {
     await this.mailerService.sendVerifyToken(email)
   }
-
+  
   async verifyUser(email: string, code: string) {
     const redisClient = this.redisService.getClient()
     const unverifiedKey = `verification_code:${email}:unverified`;
@@ -146,17 +213,6 @@ export class UserService {
       return {message: '인증이 완료되었습니다.'};
     }
     return {message: '인증번호가 일치하지 않습니다.'}
-  }
-
-  async remove(userId: number, id: number) {
-    const user = await this.findById(id)
-
-    if(userId !== id) {
-      throw new NotFoundException('유저를 찾을 수 없습니다.')
-    }
-
-    await this.userRepository.delete({id : id})
-    return {message: '회원탈퇴가 완료되었습니다.'}
   }
 
   async findByEmail(email: string) {
