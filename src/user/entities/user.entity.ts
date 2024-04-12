@@ -17,6 +17,7 @@ import { PostComment } from 'src/post-comment/entities/post-comment.entity';
 import { Location } from 'src/location/entities/location.entity';
 import { ChatContent } from 'src/chat/entities/chat_contents.entity';
 import { Member } from 'src/member/entities/member.entity';
+import { Plan } from 'src/plan/entities/plan.entity';
 
 @Index('email', ['email'], { unique: true })
 @Entity({
@@ -43,9 +44,6 @@ export class User {
   phone: string;
 
   @Column({ type: 'boolean', unique: false, nullable: true, default: false })
-  is_cert?: boolean;
-
-  @Column({ type: 'boolean', unique: false, nullable: true, default: false })
   is_verify: boolean;
 
   @IsEnum(Role)
@@ -65,9 +63,8 @@ export class User {
   // @Exclude() // 특정 작업을 수행할 때 해당 특정 속성을 무시하도록 ORM 프레임워크에 지시
   // currentHashedRefreshToken?: string;
 
-  // TODO 관계확인하고 주석해제할 것.
-  //   @OneToMany(() => , (plan) => plan.user)
-  //   plan: Plan[];
+    @OneToMany(() => Plan, (plan) => plan.user)
+    plan: Plan[];
 
   @OneToMany(() => Post, (post) => post.user)
   post: Post[];
