@@ -3,8 +3,10 @@ import { ScheduleService } from './schedule.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
+import { UserInfo } from 'src/utils/userInfo.decorator';
+import { User } from 'src/user/entities/user.entity';
 
-// @UseGuards(AuthGuard("jwt"))
+@UseGuards(AuthGuard("jwt"))
 @Controller(':planId/schedule')
 export class ScheduleController {
     constructor(private readonly scheduleService: ScheduleService) { }
@@ -12,8 +14,10 @@ export class ScheduleController {
     @Post()
     async create(
         @Param("planId") planId: number,
-        @Body() createScheduleDto: CreateScheduleDto) {
-        const createSchedule = await this.scheduleService.create(planId, createScheduleDto);
+        @Body() createScheduleDto: CreateScheduleDto,
+        @UserInfo() user: User,
+    ) {
+        const createSchedule = await this.scheduleService.create(planId, createScheduleDto, user);
 
         return {
             createSchedule,
@@ -33,9 +37,11 @@ export class ScheduleController {
     async update(
         @Param('planId') planId: number,
         @Param("id") id: number,
-        @Body() updateScheduleDto: UpdateScheduleDto) {
+        @Body() updateScheduleDto: UpdateScheduleDto,
+        @UserInfo() user: User,
+    ) {
 
-        const updateSchedule = await this.scheduleService.update(planId, id, updateScheduleDto)
+        const updateSchedule = await this.scheduleService.update(planId, id, updateScheduleDto, user)
 
         return updateSchedule;
     }
@@ -43,9 +49,11 @@ export class ScheduleController {
     @Delete(':id')
     async remove(
         @Param("planId") planId: number,
-        @Param('id') id: number) {
+        @Param('id') id: number,
+        @UserInfo() user: User,
+    ) {
 
-        const deleteSchedule = await this.scheduleService.remove(planId, id)
+        const deleteSchedule = await this.scheduleService.remove(planId, id, user)
 
         return deleteSchedule;
 
