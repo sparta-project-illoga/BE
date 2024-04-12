@@ -26,7 +26,6 @@ export class MailerService {
   }
 
   async sendVerifyToken(email: string) {
-
     const getRandomCode = (min: number, max: number) => {
       min = Math.ceil(min);
       max = Math.floor(max);
@@ -48,6 +47,21 @@ export class MailerService {
 
       });
       console.log('메일이 전송되었습니다')
+    } catch (error) {
+      console.error('메일 전송 중 오류가 발생했습니다:', error);
+      throw new Error(`메일 전송 실패: ${error.message}`);
+    }
+  }
+
+  async sendNewPass(email: string, password: string) {  
+    try {
+      await this.transporter.sendMail({
+        from: this.configService.get<string>('GMAIL_ID'), 
+        to: email,
+        subject: '[illoga] 임시 비밀번호를 확인해주세요.',
+        text: `Your New Password is ${password}`,
+      });
+      console.log('메일이 전송되었습니다');
     } catch (error) {
       console.error('메일 전송 중 오류가 발생했습니다:', error);
       throw new Error(`메일 전송 실패: ${error.message}`);

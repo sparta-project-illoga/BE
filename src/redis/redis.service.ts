@@ -9,7 +9,11 @@ export class RedisService {
     this.client = new Redis({
       host: this.configService.get<string>('REDIS_HOST'),
       port: this.configService.get<number>('REDIS_PORT'),
-      password: this.configService.get<string>('REDIS_PASSWORD')
+      password: this.configService.get<string>('REDIS_PASSWORD'),
+      connectTimeout: 10000,
+      retryStrategy: (times) => {
+        return Math.min(times * 2000, 30000);
+      },
     });
   }
 
