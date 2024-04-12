@@ -6,6 +6,7 @@ import { And, Repository } from 'typeorm';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { Place } from 'src/plan/entities/place.entity';
 import { Plan } from 'src/plan/entities/plan.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class ScheduleService {
@@ -19,13 +20,28 @@ export class ScheduleService {
   ) { }
 
   // 스케쥴 생성
-  async create(planId: number, createScheduleDto: CreateScheduleDto) {
+  async create(
+    planId: number, 
+    createScheduleDto: CreateScheduleDto,
+    user: User
+  ) {
+
+    const checkUserPlan = await this.planRepository.findOne({
+      where : {id : planId}
+    });
+
+    if(!checkUserPlan) {
+      throw new NotFoundException('플랜을 찾을 수 없습니다.');
+    }
+
+    if (checkUserPlan.userId !== user.id) {
+      throw new BadRequestException('작성자만 등록할 수 있습니다.');
+    }
 
     const lastschedule = await this.ScheduleRepository.createQueryBuilder("schedule")
       .where("schedule.planId = :planId", { planId })
       .orderBy("schedule.date", "DESC")
       .getOne();
-      
 
     const { date, place, money } = createScheduleDto;
 
@@ -108,7 +124,20 @@ export class ScheduleService {
   }
 
   // 스케줄 수정
-  async update(planId: number, id: number, updateScheduleDto: UpdateScheduleDto) {
+  async update(planId: number, id: number, updateScheduleDto: UpdateScheduleDto, user: User) {
+
+
+    const checkUserPlan = await this.planRepository.findOne({
+      where : {id : planId}
+    });
+
+    if(!checkUserPlan) {
+      throw new NotFoundException('플랜을 찾을 수 없습니다.');
+    }
+
+    if (checkUserPlan.userId !== user.id) {
+      throw new BadRequestException('작성자만 등록할 수 있습니다.');
+    }
 
     const { place, money } = updateScheduleDto;
 
@@ -132,7 +161,19 @@ export class ScheduleService {
   }
 
   // 스케쥴 삭제
-  async remove(planId: number, id: number) {
+  async remove(planId: number, id: number, user: User) {
+
+    const checkUserPlan = await this.planRepository.findOne({
+      where : {id : planId}
+    });
+
+    if(!checkUserPlan) {
+      throw new NotFoundException('플랜을 찾을 수 없습니다.');
+    }
+
+    if (checkUserPlan.userId !== user.id) {
+      throw new BadRequestException('작성자만 등록할 수 있습니다.');
+    }
 
     // 삭제할 스케쥴 찾기
     const deleteSchedule = await this.ScheduleRepository.findOne({
@@ -160,8 +201,6 @@ export class ScheduleService {
     const findtotaldata = await this.planRepository.findOne({
       where: { id: planId }
     })
-
-
 
     // 플랜의 마지막 스케쥴
     const lastschedule = await this.ScheduleRepository.createQueryBuilder("schedule")
