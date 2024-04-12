@@ -7,6 +7,12 @@ import { Plan } from './entities/plan.entity';
 import { ScheduleService } from '../schedule/schedule.service';
 import { Place } from './entities/place.entity';
 import { CategoryService } from 'src/category/category.service';
+import { Member } from 'src/member/entities/member.entity';
+import { MemberType } from "src/member/types/member.type";
+import { User } from 'src/user/entities/user.entity';
+import { AwsService } from 'src/aws/aws.service';
+import { UtilsService } from 'src/utils/utils.service';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class PlanService {
@@ -17,28 +23,88 @@ export class PlanService {
     @InjectRepository(Place)
     private placeRepository: Repository<Place>,
     private scheduleService: ScheduleService,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
+    @InjectRepository(Member)
+    private memberRepository: Repository<Member>,
+    private awsService: AwsService,
+    private utilsService: UtilsService,
+    private redisService: RedisService
+
   ) { }
 
-  // 1. 플랜 생성 (단 총 예산과 일정은 추가가 안됨)
-  async create(createPlanDto: CreatePlanDto) {
-    const { name, image } = createPlanDto;
+  async setPlanTime (planId: number) {
+    const redisClient = this.redisService.getClient();
+    const key = `plan_expiration:${planId}`;
+    const timeSet = 30;
+    await redisClient.set(key, "true", "EX", timeSet)
+    
+  }
 
-    if (!name) {
-      return new BadRequestException("이름을 입력하세요.");
-    }
+  async deleteSetPlanTime (planId: number) {
+    const redisClient = this.redisService.getClient();
+    const key = `plan_expiration:${planId}`;
+    await redisClient.del(key);
+  }
+
+  // 1. 플랜 생성 (단 총 예산과 일정은 추가가 안됨)
+  async create( user: User) {
 
     const createPlan = await this.planRepository.save({
-      name,
-      image
+      userId : user.id
     });
 
-    return { createPlan };
+    const memberLeader = await this.memberRepository.save({
+      name : user.name,
+      planId : createPlan.id,
+      userId : user.id,
+      type : MemberType.Leader,
+    })
+
+    // await this.setPlanTime(createPlan.id);
+
+    return { createPlan, memberLeader };
   }
 
   // 스케줄 가져와서 생성
-  async createpassive(id: number ,pickPlanDto: PickPlanDto) {
-    const {pickplan} = pickPlanDto;
+  async createpassive(
+    id: number ,
+    pickPlanDto: PickPlanDto, 
+    user: User,
+    file? : Express.Multer.File
+  ) {
+
+    const plan = await this.planRepository.findOne({
+      where : {id}
+    });
+
+    if (!plan) {
+      throw new NotFoundException('플랜을 찾을 수 없습니다.');
+    }
+
+    if (plan.userId !== user.id) {
+      throw new BadRequestException('작성자만 등록할 수 있습니다.');
+    }
+
+    const {name,pickplan} = pickPlanDto;
+
+    let imageUrl = plan.image;
+
+    if(file) {
+      if (plan.image !== null) {
+        await this.awsService.deleteUploadToS3(plan.image);
+      }
+    }
+
+    const imageName = this.utilsService.getUUID();
+    const ext = file? file.originalname.split('.').pop() : null;
+
+    if (ext) {
+      imageUrl = await this.awsService.imageUploadToS3(
+        `${imageName}.${ext}`,
+        file,
+        ext,
+      );
+    }
 
     const findSchedule = await this.scheduleService.findAll(pickplan);
 
@@ -58,9 +124,13 @@ export class PlanService {
 
     const totalmoney = totalschedule.schedule.reduce((total, schedule) => total + schedule.money, 0);
 
+    // await this.deleteSetPlanTime(id);
+
     await this.planRepository.update(
       {id},
       {
+        name,
+        image : `${imageName}.${ext}`,
         totaldate : lastScehdule.date,
         totalmoney
       }
@@ -71,9 +141,43 @@ export class PlanService {
   }
 
   // 2. 플랜 총 일정 및 에산 추가
-  async update(id: number, createPlanDto: CreatePlanDto) {
+  async update(
+    id: number, 
+    createPlanDto: CreatePlanDto,
+    user: User, 
+    file? : Express.Multer.File
+  ) {
 
-    const {name} = createPlanDto;
+    const plan = await this.planRepository.findOne({
+      where : {id}
+    })
+
+    if (!plan) {
+      throw new NotFoundException('플랜을 찾을 수 없습니다.');
+    }
+
+    if (plan.userId !== user.id) {
+      throw new BadRequestException('작성자만 등록할 수 있습니다.');
+    }
+
+    let imageUrl = plan.image;
+
+    if(file) {
+      if (plan.image !== null) {
+        await this.awsService.deleteUploadToS3(plan.image);
+      }
+    }
+
+    const imageName = this.utilsService.getUUID();
+    const ext = file? file.originalname.split('.').pop() : null;
+
+    if (ext) {
+      imageUrl = await this.awsService.imageUploadToS3(
+        `${imageName}.${ext}`,
+        file,
+        ext,
+      );
+    }
 
     const totalschedule = await this.scheduleService.findAll(id);
 
@@ -84,10 +188,13 @@ export class PlanService {
     await this.planRepository.update(
       { id },
       {
-        name,
+        name : createPlanDto.name,
+        image : `${imageName}.${ext}`,
         totaldate : lastScehdule.date,
         totalmoney,
       });
+
+      // await this.deleteSetPlanTime(id);
 
       const findPlan = await this.planRepository.findOne({
         where: { id }
@@ -129,17 +236,32 @@ export class PlanService {
   }
 
   // 플랜 삭제(동일 지역이 있을 경우 총 지역에 삭제 x)
-  async remove(id: number) {
-    const findPlan = await this.planRepository.findOne({
-      where: { id }
+  async remove(id: number, user: User) {
+
+    const plan = await this.planRepository.findOne({
+      where : {id}
     })
 
+    if (!plan) {
+      throw new NotFoundException('플랜을 찾을 수 없습니다.');
+    }
+
+    if (plan.userId !== user.id) {
+      throw new BadRequestException('작성자만 삭제할 수 있습니다.');
+    }
+
+    // 플랜삭제
     await this.planRepository.delete({ id });
     
+    // 관련 스케쥴 삭제
     await this.scheduleService.removeByplanId(id);
 
+    // 관련 총지역 삭제
     await this.placeRepository.delete({planId : id});
 
-    return { findPlan };
+    // 관련 멤버 삭제
+    await this.memberRepository.delete({planId: id});
+
+    return { plan };
   }
 }

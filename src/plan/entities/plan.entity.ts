@@ -5,15 +5,18 @@ import { ChatRoom } from "src/chat/entities/chat_rooms.entity";
 import { Place } from "../entities/place.entity"
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Category } from "src/category/entities/category.entity";
+import { User } from "src/user/entities/user.entity";
 
 @Entity({ name: "plan" })
 export class Plan {
     @PrimaryGeneratedColumn({ unsigned: true })
     id: number;
 
-    @Column({ nullable: false })
-    @IsString()
+    @Column()
     name: string;
+
+    @Column({ type: 'int', nullable: false })
+    userId: number;
 
     @Column({ nullable: false })
     totaldate: number;
@@ -21,8 +24,7 @@ export class Plan {
     @Column({ nullable: false })
     totalmoney: number;
 
-    @Column({ nullable: true })
-    @IsString()
+    @Column({ type: 'varchar', nullable: true })
     image: string;
 
     @CreateDateColumn()
@@ -45,4 +47,8 @@ export class Plan {
 
     @OneToMany(() => Category, (category) => category.plan)
     category : Category[];
+
+    @ManyToOne(() => User, (user) => user.plan, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'userId' })
+    user: User;
 }
