@@ -48,15 +48,11 @@ export class ChatService {
       throw new NotFoundException('해당 채팅방이 존재하지 않습니다.');
     }
 
-    // if (_.isNull(room)) {
-    //   throw new NotFoundException('이미 삭제된 채팅방입니다.');
-    // }
-
-    const message = await this.chatcontentRepository.save({ roomId, userId, name: user.nickname, chat })
+    const message = await this.chatcontentRepository.save({ roomId, userId, chat })
 
     //message return 전에 gateway로 보내기
     this.eventGateway.sendMessage(message);
-    return message;
+    return { name: user.nickname, ...message };
   }
 
   //채팅 내용 조회
@@ -68,18 +64,19 @@ export class ChatService {
       throw new NotFoundException('해당 채팅방이 존재하지 않습니다.');
     }
 
-    // if (_.isNull(room)) {
-    //   throw new NotFoundException('이미 삭제된 채팅방입니다.');
-    // }
-
     const messages = await this.chatcontentRepository.find({
       where: { roomId },
-      select: {
-        name: true,
-        chat: true
-      }
     });
 
-    return messages;
+    let cArr = [];
+
+    for (let i = 0; i < messages.length; i++) {
+      const uId = messages[i].userId;
+      const user = await this.userRepository.findOneBy({ id: uId });
+      const chat = messages[i].chat;
+
+      cArr.push({ name: user.nickname, chat: chat });
+    }
+    return cArr;
   }
 }

@@ -15,10 +15,6 @@ export class ChatContent {
     @Column()
     userId: number;
 
-    //추가함 - 채팅방 입장 이름
-    @Column()
-    name: string;
-
     @Column({ type: 'text', nullable: false })
     chat: string;
 
