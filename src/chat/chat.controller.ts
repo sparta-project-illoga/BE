@@ -21,9 +21,8 @@ export class ChatController {
   //채팅방 만들기
   //memberguard : leader만 가능
   @Members(MemberType.Leader)
-  @Post(':planId')
+  @Post('plan/:planId')
   @ApiOperation({ summary: '채팅방 생성 API', description: '플랜 멤버들을 포함한 채팅방을 생성한다.' })
-
   async createRoom(@Param('planId') planId: number, @Body() createChatDto: CreateChatDto) {
     console.log("채팅방 만들기 planId,채팅방이름 : ", planId, createChatDto.name);
     const room = await this.chatService.createRoom(planId, createChatDto.name);
@@ -36,7 +35,7 @@ export class ChatController {
 
   //채팅 입력하기
   //user가 null로 읽힘
-  @Post('content/:roomId')
+  @Post('room/:roomId/content')
   @ApiOperation({ summary: '채팅 입력 API', description: '채팅방에서 채팅을 입력한다.' })
   async create(@Param('roomId') roomId: number, @UserInfo() user: User, @Body() createMessageDto: CreateMessageDto) {
     const text = await this.chatService.createMessage(roomId, user.id, createMessageDto.text);
@@ -48,7 +47,7 @@ export class ChatController {
   }
 
   //채팅 내용 조회
-  @Get('content/:roomId')
+  @Get('room/:roomId/content')
   @ApiOperation({ summary: '채팅 내용 조회 API', description: '채팅방에서 입력한 채팅들을 조회한다.' })
   async findAll(@Param('roomId') roomId: number) {
     const text = await this.chatService.findAll(roomId);
