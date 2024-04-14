@@ -32,6 +32,13 @@ export class CategoryService {
   }
 
   async findAll(planId: number) {
+
+    const plan = await this.planRepository.findOneBy({ id: planId });
+
+    if (!plan) {
+      throw new BadGatewayException("해당 플랜이 존재하지 않습니다.");
+    }
+
     const category = await this.categoryRepository.find({
       where: { planId },
       select: {

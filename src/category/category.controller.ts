@@ -13,7 +13,7 @@ export class CategoryController {
   constructor(private readonly categoryService: CategoryService) { }
 
   //카테고리 생성
-  @Post(':planId')
+  @Post('plan/:planId')
   @ApiOperation({ summary: '카테고리 생성 API', description: '카테고리를 생성한다.' })
   @ApiResponse({ description: '카테고리를 생성한다.', type: Category })
   async create(@Param('planId') planId: number, @Body() createCategoryDto: CreateCategoryDto) {
@@ -28,7 +28,7 @@ export class CategoryController {
   }
 
   //플랜에 해당하는 카테고리 조회
-  @Get(':planId')
+  @Get('plan/:planId')
   @ApiOperation({ summary: '카테고리 조회 API', description: '플랜에 저장된 카테고리를 조회한다.' })
   //@ApiResponse({ description: '플랜에 저장된 카테고리를 조회한다.', type: Category })
   async findAll(@Param('planId') planId: number) {
