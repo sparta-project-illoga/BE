@@ -15,10 +15,6 @@ export class Member {
     @Column({ type: 'int', nullable: false })
     userId: number;
 
-    //멤버로 추가된 사용자의 이름
-    @Column()
-    name: string;
-
     @Column({ type: 'enum', enum: MemberType, default: MemberType.Member })
     type: MemberType;
 
