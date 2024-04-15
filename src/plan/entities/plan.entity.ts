@@ -6,6 +6,7 @@ import { Place } from "../entities/place.entity"
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Category } from "src/category/entities/category.entity";
 import { User } from "src/user/entities/user.entity";
+import { PlanType } from "../types/plan.type";
 @Entity({ name: "plan" })
 export class Plan {
     @PrimaryGeneratedColumn({ unsigned: true })
@@ -14,12 +15,14 @@ export class Plan {
     name: string;
     @Column({ type: 'int', nullable: false })
     userId: number;
-    @Column({ nullable: false })
+    @Column({ nullable: true })
     totaldate: number;
-    @Column({ nullable: false })
+    @Column({ nullable: true })
     totalmoney: number;
     @Column({ type: 'varchar', nullable: true })
     image: string;
+    @Column({type: "enum", enum: PlanType, default: PlanType.NonCreate})
+    type: PlanType;
     @CreateDateColumn()
     created_at: Date;
     @UpdateDateColumn()
