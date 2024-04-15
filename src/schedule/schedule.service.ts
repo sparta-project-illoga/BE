@@ -7,6 +7,7 @@ import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { Place } from 'src/plan/entities/place.entity';
 import { Plan } from 'src/plan/entities/plan.entity';
 import { User } from 'src/user/entities/user.entity';
+import { Area } from 'src/location/entities/area.entity';
 
 @Injectable()
 export class ScheduleService {
@@ -17,20 +18,22 @@ export class ScheduleService {
     private placeRepository: Repository<Place>,
     @InjectRepository(Plan)
     private planRepository: Repository<Plan>,
+    @InjectRepository(Area)
+    private areaRepository: Repository<Area>,
   ) { }
 
   // 스케쥴 생성
   async create(
-    planId: number, 
+    planId: number,
     createScheduleDto: CreateScheduleDto,
     user: User
   ) {
 
     const checkUserPlan = await this.planRepository.findOne({
-      where : {id : planId}
+      where: { id: planId }
     });
 
-    if(!checkUserPlan) {
+    if (!checkUserPlan) {
       throw new NotFoundException('플랜을 찾을 수 없습니다.');
     }
 
@@ -43,30 +46,54 @@ export class ScheduleService {
       .orderBy("schedule.date", "DESC")
       .getOne();
 
-    const { date, place, money } = createScheduleDto;
+    let { date, placecode, money } = createScheduleDto;
 
-    const schedule = await this.ScheduleRepository.find({where : {planId}});
+    // 입력받은 코드로 지역 조회
+    const place = await this.areaRepository.findOne({ where: { areaCode: placecode } });
 
-    // 일정 확인 (마지막 일정보다 같거나 +1 커야만 한다)
-    if ( !lastschedule || (schedule.length === 0 && date === 1) ||lastschedule.date === date || lastschedule.date + 1 === date)  {
-      // 스케줄 생성
+    if (!lastschedule) {
       const createSchedule = await this.ScheduleRepository.save({
-        date,
-        place,
+        date: 1,
+        place: place.name,
         money,
         planId: planId,
       });
 
       // 지역이 이미 존재하는지 확인
       const exitPlace = await this.placeRepository.findOne({
-        where: { planId, placename: place }
+        where: { planId, placename: place.name }
       });
 
       // 존재하지 않으면 총지역에 추가한다
       if (!exitPlace) {
         await this.placeRepository.save({
           planId: planId,
-          placename: place
+          placename: place.name
+        })
+      }
+
+      return { createSchedule };
+    }
+    // 일정 확인 (마지막 일정보다 같거나 +1 커야만 한다)
+    else if (lastschedule.date === date || lastschedule.date + 1 === date) {
+      // 스케줄 생성
+      const createSchedule = await this.ScheduleRepository.save({
+        date,
+        place: place.name,
+        money,
+        planId: planId,
+      });
+
+      // 지역이 이미 존재하는지 확인
+      const exitPlace = await this.placeRepository.findOne({
+        where: { planId, placename: place.name }
+      });
+
+      // 존재하지 않으면 총지역에 추가한다
+      if (!exitPlace) {
+        await this.placeRepository.save({
+          planId: planId,
+          placename: place.name
         })
       }
 
@@ -126,12 +153,11 @@ export class ScheduleService {
   // 스케줄 수정
   async update(planId: number, id: number, updateScheduleDto: UpdateScheduleDto, user: User) {
 
-
     const checkUserPlan = await this.planRepository.findOne({
-      where : {id : planId}
+      where: { id: planId }
     });
 
-    if(!checkUserPlan) {
+    if (!checkUserPlan) {
       throw new NotFoundException('플랜을 찾을 수 없습니다.');
     }
 
@@ -139,7 +165,9 @@ export class ScheduleService {
       throw new BadRequestException('작성자만 등록할 수 있습니다.');
     }
 
-    const { place, money } = updateScheduleDto;
+    const { placecode, money } = updateScheduleDto;
+
+    const placedata = await this.areaRepository.findOne({ where: { areaCode: placecode } });
 
     const findSchedule = await this.ScheduleRepository.findOne({
       where: { planId: planId, id: id }
@@ -152,7 +180,7 @@ export class ScheduleService {
     const updateSchedule = await this.ScheduleRepository.update(
       { id },
       {
-        place,
+        place : placedata.name,
         money
       }
     );
@@ -164,10 +192,10 @@ export class ScheduleService {
   async remove(planId: number, id: number, user: User) {
 
     const checkUserPlan = await this.planRepository.findOne({
-      where : {id : planId}
+      where: { id: planId }
     });
 
-    if(!checkUserPlan) {
+    if (!checkUserPlan) {
       throw new NotFoundException('플랜을 찾을 수 없습니다.');
     }
 
@@ -198,16 +226,16 @@ export class ScheduleService {
     }
 
     const sameDateSchedule = await this.ScheduleRepository.find({
-      where : {
+      where: {
         planId,
         date: deleteSchedule.date
       }
     })
 
     const findAllSchedule = await this.ScheduleRepository.find({
-      where : {
+      where: {
         planId,
-        date : MoreThan(deleteSchedule.date)
+        date: MoreThan(deleteSchedule.date)
       }
     });
 

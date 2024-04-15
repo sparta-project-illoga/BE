@@ -10,9 +10,9 @@ export class PickPlanDto{
     @IsOptional()
     category?: CategoryName
 
-    @IsString()
+    @IsNumber()
     @IsOptional()
-    place?: string
+    placecode?: number
 
     @IsNumber()
     @IsOptional()

@@ -15,6 +15,7 @@ import { UtilsService } from 'src/utils/utils.service';
 import { RedisService } from 'src/redis/redis.service';
 import { PlanType } from './types/plan.type';
 import { Category } from 'src/category/entities/category.entity';
+import { Area } from 'src/location/entities/area.entity';
 
 @Injectable()
 export class PlanService {
@@ -33,6 +34,8 @@ export class PlanService {
     private redisService: RedisService,
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
+    @InjectRepository(Area)
+    private areaRepository: Repository<Area>,
 
   ) { }
 
@@ -98,7 +101,7 @@ export class PlanService {
       throw new BadRequestException('작성자만 등록할 수 있습니다.');
     }
 
-    const { name, category, place, money, date } = pickPlanDto;
+    const { name, category, placecode, money, date } = pickPlanDto;
 
     let imageUrl = plan.image;
 
@@ -119,9 +122,11 @@ export class PlanService {
       );
     }
 
+    const place = await this.areaRepository.findOne({where : {areaCode : placecode}});
+
     // 플랜 자동 생성 검색
     const AllPlacePlan = await this.placeRepository.find({
-      where: { placename: Like(`%${place}%`) },
+      where: { placename: place.name },
     });
 
     const AllCategoryPlan = await this.categoryRepository.find({
@@ -149,7 +154,7 @@ export class PlanService {
           extractAutoPlan.andWhere('plan.totaldate <= :date', { date });
         }
       
-        if (place) {
+        if (placecode) {
           extractAutoPlan.andWhere('plan.id IN (:...placePlanId)', {placePlanId});
         }
      }
