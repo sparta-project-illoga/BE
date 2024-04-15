@@ -1,12 +1,24 @@
-import { PickType } from '@nestjs/mapped-types';
-import { IsNumber, IsString } from 'class-validator';
-import { Plan } from '../entities/plan.entity';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { CategoryName } from 'src/category/types/category.type';
 
 export class PickPlanDto{
 
     @IsString()
     name: string;
 
+    @IsEnum(CategoryName)
+    @IsOptional()
+    category?: CategoryName
+
+    @IsString()
+    @IsOptional()
+    place?: string
+
     @IsNumber()
-    pickplan: number;
+    @IsOptional()
+    date? : number
+    
+    @IsNumber()
+    @IsOptional()
+    money?: number
 }
