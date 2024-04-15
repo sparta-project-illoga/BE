@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { UpdateMemberDto } from './dto/update-member.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Plan } from 'src/plan/entities/plan.entity';
@@ -13,7 +12,6 @@ export class MemberService {
     @InjectRepository(Member) private readonly memberRepository: Repository<Member>,
     @InjectRepository(Plan) private readonly planRepository: Repository<Plan>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-
 
     private eventGateway: EventsGateway,
   ) { }
@@ -34,22 +32,57 @@ export class MemberService {
 
     const user = await this.userRepository.findOneBy({ id: userId });
 
-    const member = await this.memberRepository.save({ planId, userId, name: user.nickname });
+    if (!user) {
+      throw new BadRequestException('해당 유저는 존재하지 않습니다.');
+    }
+
+    const member = await this.memberRepository.save({ planId, userId });
 
     this.eventGateway.addMember(member);
 
     return member;
   }
 
-  async findAll(planId: number) {
-    const members = await this.memberRepository.find({ where: { planId } });
+  // async findAll(planId: number) {
+  //   const members = await this.memberRepository.find({
+  //     where: { planId },
+  //     relations: ['user'],
+  //     select: {
+  //       user: {
+  //         nickname: true
+  //       }
+  //     }
+  //   });
 
-    return members;
+  //   return members;
+  // }
+
+  async findAll(planId: number) {
+    const members = await this.memberRepository.find({
+      where: { planId },
+    });
+
+    let mArr = [];
+
+    for (let i = 0; i < members.length; i++) {
+      const mId = members[i].memberId;
+      const uId = members[i].userId;
+      const user = await this.userRepository.findOne({
+        where: { id: uId },
+        select: { nickname: true }
+      });
+      const type = members[i].type;
+
+      mArr.push({ memberId: mId, userId: uId, nickname: user.nickname, type: type });
+    }
+    return mArr;
   }
 
   //memberguard에서 member 찾아서 return
   async findMember(userId: number, planId: number) {
-    const member = await this.memberRepository.findOne({ where: { userId, planId } });
+    const member = await this.memberRepository.findOne({
+      where: { userId, planId },
+    });
 
     return member;
   }
@@ -57,15 +90,24 @@ export class MemberService {
   async update(memberId: number, userId: number) {
     await this.memberRepository.update({ memberId }, { userId });
 
-    const member = await this.memberRepository.findOneBy({ memberId });
-    return member;
+    const member = await this.memberRepository.findOne({
+      where: { memberId }
+    });
+
+    const user = await this.userRepository.findOneBy({ id: userId });
+
+    return { ...member, nickname: user.nickname };
   }
 
   async remove(memberId: number) {
-    const member = await this.memberRepository.findOneBy({ memberId });
+    const member = await this.memberRepository.findOne({
+      where: { memberId },
+    });
+
+    const user = await this.userRepository.findOneBy({ id: member.userId });
 
     await this.memberRepository.delete({ memberId });
 
-    return member;
+    return { ...member, nickname: user.nickname };
   }
 }

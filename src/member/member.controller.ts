@@ -18,7 +18,7 @@ export class MemberController {
   //멤버 추가
   //리더만 가능
   @Members(MemberType.Leader)
-  @Post(':planId')
+  @Post('plan/:planId')
   @ApiOperation({ summary: '멤버 추가 API', description: '플랜에 멤버를 추가한다.' })
   async create(@Param('planId') planId: number, @Body() createMemberDto: CreateMemberDto) {
     const member = await this.memberService.create(planId, createMemberDto.userId);
@@ -31,7 +31,7 @@ export class MemberController {
   }
 
   //멤버 조회
-  @Get(':planId')
+  @Get('plan/:planId')
   @ApiOperation({ summary: '멤버 조회 API', description: '플랜에 추가된 멤버들을 조회한다.' })
   async findAll(@Param('planId') planId: number) {
     const members = await this.memberService.findAll(planId);
