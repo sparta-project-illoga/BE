@@ -2,7 +2,7 @@ import { BadGatewayException, BadRequestException, Injectable, NotFoundException
 import { InjectRepository } from '@nestjs/typeorm';
 import { Schedule } from './entities/schedule.entity';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
-import { And, Repository } from 'typeorm';
+import { And, MoreThan, Repository } from 'typeorm';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { Place } from 'src/plan/entities/place.entity';
 import { Plan } from 'src/plan/entities/plan.entity';
@@ -195,6 +195,27 @@ export class ScheduleService {
         planId,
         placename: deleteSchedule.place
       });
+    }
+
+    const sameDateSchedule = await this.ScheduleRepository.find({
+      where : {
+        planId,
+        date: deleteSchedule.date
+      }
+    })
+
+    const findAllSchedule = await this.ScheduleRepository.find({
+      where : {
+        planId,
+        date : MoreThan(deleteSchedule.date)
+      }
+    });
+
+    if (sameDateSchedule.length === 1) {
+      for (const schedule of findAllSchedule) {
+        schedule.date = schedule.date - 1;
+        await this.ScheduleRepository.save(schedule);
+      }
     }
 
     // 플랜의 총 예산
