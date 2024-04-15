@@ -31,21 +31,23 @@ export class LocationController {
     await this.locationService.addTourSpot();
   }
 
-  //여행정보 전체조회
+  // 여행지 정보검색 (전체)
   @Get('tourSpot')
-  async getAllTourSpot() {
-    const tourSpots = await this.locationService.findAllTourSpot();
+  async getAllTourSpot(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 20,
+  ) {
+    const tourSpots = await this.locationService.findAllTourSpot(page, limit);
     return tourSpots;
   }
-
-  //여행정보 검색기능
+  // 여행지 정보검색 (지역코드)
   @Get('tourSpot/search')
   async searchTourSpot(@Query('areaCode') areaCode: string) {
     return this.locationService.searchTourSpot(areaCode);
   }
 
-  //여행정보 검색
-  @Get('search')
+  // 여행지 정보검색 (키워드)
+  @Get('tourSpot/search')
   async search(@Query('keyword') keyword: string) {
     const tourSpots =
       await this.locationService.searchTourSpotByKeyword(keyword);

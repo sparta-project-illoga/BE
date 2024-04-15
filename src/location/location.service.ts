@@ -112,67 +112,82 @@ export class LocationService {
     }
   }
 
+  // 여행지 데이터 저장
   async addTourSpot() {
     try {
       const files = await fs.promises.readdir('./src/location/data/');
-      for (const file of files) {
-        if (file.startsWith('areaBasedList') && file.endsWith('.json')) {
+      const filePromises = files
+        .filter(
+          (file) => file.startsWith('areaBasedList') && file.endsWith('.json'),
+        )
+        .map(async (file) => {
           const filePath = path.join('./src/location/data/', file);
           const tourSpotData = await fs.promises.readFile(filePath, 'utf-8');
           const parsedTourSpotData = JSON.parse(tourSpotData);
           const tourSpotItems = parsedTourSpotData.response.body.items.item;
-          for (const item of tourSpotItems) {
-            const existingTourSpot = await this.tourSpotRepository.findOne({
-              where: { contentId: item.contentid },
-            });
-            if (!existingTourSpot) {
-              const tourSpot = this.tourSpotRepository.create({
-                addr1: item.addr1,
-                addr2: item.addr2,
-                areaCode: item.areacode,
-                bookTour: item.booktour,
-                cat1: item.cat1,
-                cat2: item.cat2,
-                cat3: item.cat3,
-                contentId: item.contentid,
-                contentTypeId: item.contenttypeid,
-                createdTime: item.createdtime,
-                firstImage: item.firstimage,
-                firstImage2: item.firstimage2,
-                cpyrhtDivCd: item.cpyrhtDivCd,
-                mapX: item.mapx,
-                mapY: item.mapy,
-                mlevel: item.mlevel,
-                modifiedTime: item.modifiedtime,
-                sigunguCode: item.sigungucode,
-                tel: item.tel,
-                title: item.title,
-                zipCode: item.zipcode,
+          await Promise.all(
+            tourSpotItems.map(async (item) => {
+              const existingTourSpot = await this.tourSpotRepository.findOne({
+                where: { contentId: item.contentid },
               });
-              await this.tourSpotRepository.save(tourSpot);
-            }
-          }
-        }
-      }
+              if (!existingTourSpot) {
+                const tourSpot = this.tourSpotRepository.create({
+                  addr1: item.addr1,
+                  addr2: item.addr2,
+                  areaCode: item.areacode,
+                  bookTour: item.booktour,
+                  cat1: item.cat1,
+                  cat2: item.cat2,
+                  cat3: item.cat3,
+                  contentId: item.contentid,
+                  contentTypeId: item.contenttypeid,
+                  createdTime: item.createdtime,
+                  firstImage: item.firstimage,
+                  firstImage2: item.firstimage2,
+                  cpyrhtDivCd: item.cpyrhtDivCd,
+                  mapX: item.mapx,
+                  mapY: item.mapy,
+                  mlevel: item.mlevel,
+                  modifiedTime: item.modifiedtime,
+                  sigunguCode: item.sigungucode,
+                  tel: item.tel,
+                  title: item.title,
+                  zipCode: item.zipcode,
+                });
+                await this.tourSpotRepository.save(tourSpot);
+              }
+            }),
+          );
+        });
+      await Promise.all(filePromises);
       return { message: '데이터 추가 성공' };
     } catch (error) {
       throw new Error('데이터 추가 실패');
     }
   }
 
-  async findAllTourSpot() {
-    const tourSpots = await this.tourSpotRepository.find({
+  // 여행지 정보검색 (전체)
+  async findAllTourSpot(page: number, limit: number) {
+    const [results, total] = await this.tourSpotRepository.findAndCount({
       relations: ['tourSpotTags', 'tourSpotTags.tag'],
+      skip: (page - 1) * limit,
+      take: limit,
     });
-    return tourSpots.map((tourSpot) => ({
-      ...tourSpot,
-      tourSpotTags: tourSpot.tourSpotTags.map(
-        (tourSpotTag) => tourSpotTag.tag.name,
-      ),
-    }));
+
+    return {
+      data: results.map((tourSpot) => ({
+        ...tourSpot,
+        tourSpotTags: tourSpot.tourSpotTags.map(
+          (tourSpotTag) => tourSpotTag.tag.name,
+        ),
+      })),
+      count: total,
+      page: page,
+      limit: limit,
+    };
   }
 
-  // 여행지 원본 조회
+  // 여행지 정보검색 (지역코드)
   async searchTourSpot(areaCode: string) {
     try {
       const tourSpots = await this.tourSpotRepository.find({
@@ -184,7 +199,7 @@ export class LocationService {
     }
   }
 
-  // 여행지 검색
+  // 여행지 정보검색 (키워드)
   async searchTourSpotByKeyword(keyword: string) {
     try {
       const tourSpots = await this.tourSpotRepository
