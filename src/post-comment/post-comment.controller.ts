@@ -21,7 +21,7 @@ export class PostCommentController {
 
   // 댓글 생성
   @UseGuards(AuthGuard('jwt'))
-  @Post('comment/:postId')
+  @Post(':postId/comment')
   createComment(
     @Body() createPostCommentDto: CreatePostCommentDto,
     @UserInfo() user: User,
@@ -34,14 +34,14 @@ export class PostCommentController {
     );
   }
   // 게시글 내 전체댓글 조회
-  @Get('comment/:postId')
+  @Get(':postId/comment')
   findAllCommentByPostId(@Param('postId') postId: number) {
     return this.postCommentService.findAllCommentByPostId(postId);
   }
 
   // 댓글 수정
   @UseGuards(AuthGuard('jwt'))
-  @Patch('comment/:postId/:commentId')
+  @Patch(':postId/comment/:commentId')
   updateComment(
     @Param('postId') postId: number,
     @Param('commentId') commentId: number,
@@ -58,7 +58,7 @@ export class PostCommentController {
 
   // 댓글 삭제
   @UseGuards(AuthGuard('jwt'))
-  @Delete('comment/:postId/:commentId')
+  @Delete(':postId/comment/:commentId')
   removeComment(
     @Param('postId') postId: number,
     @Param('commentId') commentId: number,

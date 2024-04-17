@@ -18,6 +18,8 @@ import { Location } from 'src/location/entities/location.entity';
 import { ChatContent } from 'src/chat/entities/chat_contents.entity';
 import { Member } from 'src/member/entities/member.entity';
 import { Plan } from 'src/plan/entities/plan.entity';
+import { Favorite } from 'src/plan/entities/favorite.entity';
+import { PlanComment } from 'src/plan-comment/entities/plan-comment.entity';
 
 @Index('email', ['email'], { unique: true })
 @Entity({
@@ -51,7 +53,7 @@ export class User {
   role: Role;
 
   @Column({ type: 'varchar', nullable: true })
-  image_url?: string
+  image_url?: string;
 
   @CreateDateColumn({ type: 'timestamp', nullable: false })
   created_at: Date;
@@ -63,8 +65,14 @@ export class User {
   // @Exclude() // 특정 작업을 수행할 때 해당 특정 속성을 무시하도록 ORM 프레임워크에 지시
   // currentHashedRefreshToken?: string;
 
-    @OneToMany(() => Plan, (plan) => plan.user)
-    plan: Plan[];
+  @OneToMany(() => Plan, (plan) => plan.user)
+  plan: Plan[];
+
+  @OneToMany(() => PlanComment, (planComment) => planComment.user)
+  planComment: PlanComment[];
+
+  @OneToMany(() => Favorite, (favorite) => favorite.user)
+  favorite: Favorite[];
 
   @OneToMany(() => Post, (post) => post.user)
   post: Post[];
@@ -74,7 +82,7 @@ export class User {
 
   @OneToOne(() => Location, (location) => location.user)
   @JoinColumn()
-  location: Location
+  location: Location;
 
   @OneToMany(() => ChatContent, (content) => content.user)
   content: ChatContent[];
@@ -82,4 +90,3 @@ export class User {
   @OneToMany(() => Member, (member) => member.user)
   member: Member[];
 }
-
