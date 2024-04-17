@@ -19,6 +19,8 @@ import { RedisModule } from 'src/redis/redis.module';
 import { UtilsService } from 'src/utils/utils.service';
 import { EventsModule } from 'src/events/events.module';
 import { Area } from 'src/location/entities/area.entity';
+import { Favorite } from './entities/favorite.entity';
+import { PlanComment } from 'src/plan-comment/entities/plan-comment.entity';
 
 @Module({
   imports: [
@@ -28,10 +30,27 @@ import { Area } from 'src/location/entities/area.entity';
     RedisModule,
     //이거 잘못되면 삭제해야함
     EventsModule,
-    TypeOrmModule.forFeature([Plan, Schedule, Place, Category, Member, User, Area])
+    TypeOrmModule.forFeature([
+      Plan,
+      Schedule,
+      Place,
+      Category,
+      Member,
+      User,
+      Area,
+      Favorite,
+      PlanComment,
+    ]),
   ],
   controllers: [PlanController],
-  providers: [PlanService, ScheduleService, CategoryService, MemberService, RedisService, UtilsService],
-  exports: [PlanService]
+  providers: [
+    PlanService,
+    ScheduleService,
+    CategoryService,
+    MemberService,
+    RedisService,
+    UtilsService,
+  ],
+  exports: [PlanService],
 })
-export class PlanModule { }
+export class PlanModule {}

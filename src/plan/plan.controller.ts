@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, UseGuards, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpStatus,
+  UseGuards,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { PlanService } from './plan.service';
 import { CreatePlanDto } from './dto/create-plan.dto';
 import { PickPlanDto } from './dto/pick-plan.dto';
@@ -9,9 +21,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('plan')
 export class PlanController {
-  constructor(
-    private readonly planService: PlanService
-  ) { }
+  constructor(private readonly planService: PlanService) {}
 
   // 1. 플랜 생성 post
   // 2. 플랜에 총예산/일정 넣기 patch
@@ -19,9 +29,7 @@ export class PlanController {
   // 플랜 생성
   @UseGuards(AuthGuard('jwt'))
   @Post()
-  async create(
-    @UserInfo() user: User
-  ) {
+  async create(@UserInfo() user: User) {
     const createPlan = await this.planService.create(user);
 
     return {
@@ -31,15 +39,20 @@ export class PlanController {
 
   // 플랜 스케줄 자동 생성
   @UseGuards(AuthGuard('jwt'))
-  @Patch("/passivity/:id")
+  @Patch('/passivity/:id')
   @UseInterceptors(FileInterceptor('file'))
   async createpassive(
-    @Param("id") id: number, 
-    @Body() pickPlanDto : PickPlanDto, 
+    @Param('id') id: number,
+    @Body() pickPlanDto: PickPlanDto,
     @UserInfo() user: User,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const createPlan = await this.planService.createpassive(id,pickPlanDto, user, file);
+    const createPlan = await this.planService.createpassive(
+      id,
+      pickPlanDto,
+      user,
+      file,
+    );
 
     return createPlan;
   }
@@ -49,12 +62,17 @@ export class PlanController {
   @Patch('activeness/:id')
   @UseInterceptors(FileInterceptor('file'))
   async update(
-    @Param('id') id: number, 
-    @Body() createPlanDto: CreatePlanDto, 
+    @Param('id') id: number,
+    @Body() createPlanDto: CreatePlanDto,
     @UserInfo() user: User,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const updatePlan = await this.planService.update(id, createPlanDto, user, file);
+    const updatePlan = await this.planService.update(
+      id,
+      createPlanDto,
+      user,
+      file,
+    );
 
     return updatePlan;
   }
@@ -76,9 +94,21 @@ export class PlanController {
   // 플랜 삭제
   @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
-  async remove(@Param('id') id: number, @UserInfo() user: User,) {
+  async remove(@Param('id') id: number, @UserInfo() user: User) {
     const deletePlan = await this.planService.remove(id, user);
 
     return deletePlan;
+  }
+  // 좋아요 기능
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':id/favorite')
+  async toggleLike(@UserInfo() user: User, @Param('id') id: number) {
+    return this.planService.toggleFavorite(user, id);
+  }
+
+  // 좋아요 개수 조회
+  @Get(':id/favorite')
+  async getFavoriteCount(@Param('id') id: number) {
+    return this.planService.getFavoriteCount(id);
   }
 }

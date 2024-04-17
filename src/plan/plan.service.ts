@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreatePlanDto } from './dto/create-plan.dto';
 import { PickPlanDto } from './dto/pick-plan.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,7 +12,7 @@ import { ScheduleService } from '../schedule/schedule.service';
 import { Place } from './entities/place.entity';
 import { CategoryService } from 'src/category/category.service';
 import { Member } from 'src/member/entities/member.entity';
-import { MemberType } from "src/member/types/member.type";
+import { MemberType } from 'src/member/types/member.type';
 import { User } from 'src/user/entities/user.entity';
 import { AwsService } from 'src/aws/aws.service';
 import { UtilsService } from 'src/utils/utils.service';
@@ -16,10 +20,10 @@ import { RedisService } from 'src/redis/redis.service';
 import { PlanType } from './types/plan.type';
 import { Category } from 'src/category/entities/category.entity';
 import { Area } from 'src/location/entities/area.entity';
+import { Favorite } from './entities/favorite.entity';
 
 @Injectable()
 export class PlanService {
-
   constructor(
     @InjectRepository(Plan)
     private planRepository: Repository<Plan>,
@@ -36,15 +40,15 @@ export class PlanService {
     private categoryRepository: Repository<Category>,
     @InjectRepository(Area)
     private areaRepository: Repository<Area>,
-
-  ) { }
+    @InjectRepository(Favorite)
+    private favoriteRepository: Repository<Favorite>,
+  ) {}
 
   async setPlanTime(planId: number) {
     const redisClient = this.redisService.getClient();
     const key = `plan_expiration:${planId}`;
     const timeSet = 30;
-    await redisClient.set(key, "true", "EX", timeSet)
-
+    await redisClient.set(key, 'true', 'EX', timeSet);
   }
 
   async deleteSetPlanTime(planId: number) {
@@ -55,9 +59,8 @@ export class PlanService {
 
   // 1. 플랜 생성 (단 총 예산과 일정은 추가가 안됨)
   async create(user: User) {
-
     const createPlan = await this.planRepository.save({
-      userId: user.id
+      userId: user.id,
     });
 
     const memberLeader = await this.memberRepository.save({
@@ -65,7 +68,7 @@ export class PlanService {
       planId: createPlan.id,
       userId: user.id,
       type: MemberType.Leader,
-    })
+    });
 
     // await this.setPlanTime(createPlan.id);
 
@@ -77,9 +80,8 @@ export class PlanService {
     id: number,
     pickPlanDto: PickPlanDto,
     user: User,
-    file?: Express.Multer.File
+    file?: Express.Multer.File,
   ) {
-
     // 관련 스케쥴 삭제
     await this.scheduleService.removeByplanId(id);
 
@@ -90,7 +92,7 @@ export class PlanService {
     await this.categoryRepository.delete({ planId: id });
 
     const plan = await this.planRepository.findOne({
-      where: { id }
+      where: { id },
     });
 
     if (!plan) {
@@ -122,7 +124,9 @@ export class PlanService {
       );
     }
 
-    const place = await this.areaRepository.findOne({where : {areaCode : placecode}});
+    const place = await this.areaRepository.findOne({
+      where: { areaCode: placecode },
+    });
 
     // 플랜 자동 생성 검색
     const AllPlacePlan = await this.placeRepository.find({
@@ -133,34 +137,40 @@ export class PlanService {
       where: { category_name: category },
     });
 
-    let categoryPlanId = AllCategoryPlan.map(categoryPlan => categoryPlan.planId);
+    let categoryPlanId = AllCategoryPlan.map(
+      (categoryPlan) => categoryPlan.planId,
+    );
 
-    let placePlanId = AllPlacePlan.map(placePlan => placePlan.planId);
+    let placePlanId = AllPlacePlan.map((placePlan) => placePlan.planId);
 
     const extractAutoPlan = this.planRepository.createQueryBuilder('plan');
 
     if (true) {
       extractAutoPlan.where('plan.type = :type', { type: PlanType.Self });
 
-        if (category) {
-          extractAutoPlan.andWhere('plan.id IN (:...categoryPlanId)', {categoryPlanId});
-        }
-      
-        if (money) {
-          extractAutoPlan.andWhere('plan.totalmoney <= :money', { money });
-        }
-      
-        if (date) {
-          extractAutoPlan.andWhere('plan.totaldate <= :date', { date });
-        }
-      
-        if (placecode) {
-          extractAutoPlan.andWhere('plan.id IN (:...placePlanId)', {placePlanId});
-        }
-     }
+      if (category) {
+        extractAutoPlan.andWhere('plan.id IN (:...categoryPlanId)', {
+          categoryPlanId,
+        });
+      }
+
+      if (money) {
+        extractAutoPlan.andWhere('plan.totalmoney <= :money', { money });
+      }
+
+      if (date) {
+        extractAutoPlan.andWhere('plan.totaldate <= :date', { date });
+      }
+
+      if (placecode) {
+        extractAutoPlan.andWhere('plan.id IN (:...placePlanId)', {
+          placePlanId,
+        });
+      }
+    }
 
     const findAutoPlan = await extractAutoPlan.getMany();
-    
+
     if (findAutoPlan.length === 0) {
       throw new NotFoundException('플랜을 찾을 수 없습니다.');
     }
@@ -175,7 +185,9 @@ export class PlanService {
       await this.scheduleService.pasteSchedule(id, schedule);
     }
 
-    const findPlace = await this.scheduleService.findAllPlace(randomPickPlan.id);
+    const findPlace = await this.scheduleService.findAllPlace(
+      randomPickPlan.id,
+    );
 
     for (const place of findPlace.place) {
       await this.scheduleService.pasteplace(id, place);
@@ -185,7 +197,10 @@ export class PlanService {
 
     const lastScehdule = await this.scheduleService.lastScehdule(id);
 
-    const totalmoney = totalschedule.schedule.reduce((total, schedule) => total + schedule.money, 0);
+    const totalmoney = totalschedule.schedule.reduce(
+      (total, schedule) => total + schedule.money,
+      0,
+    );
 
     // await this.deleteSetPlanTime(id);
 
@@ -196,12 +211,11 @@ export class PlanService {
         image: `${imageName}.${ext}`,
         totaldate: lastScehdule.date,
         totalmoney,
-        type: PlanType.Auto
-      }
+        type: PlanType.Auto,
+      },
     );
 
     return totalschedule;
-
   }
 
   // 2. 플랜 총 일정 및 에산 추가
@@ -209,12 +223,11 @@ export class PlanService {
     id: number,
     createPlanDto: CreatePlanDto,
     user: User,
-    file?: Express.Multer.File
+    file?: Express.Multer.File,
   ) {
-
     const plan = await this.planRepository.findOne({
-      where: { id }
-    })
+      where: { id },
+    });
 
     if (!plan) {
       throw new NotFoundException('플랜을 찾을 수 없습니다.');
@@ -251,7 +264,10 @@ export class PlanService {
 
     const lastScehdule = await this.scheduleService.lastScehdule(id);
 
-    const totalmoney = totalschedule.schedule.reduce((total, schedule) => total + schedule.money, 0);
+    const totalmoney = totalschedule.schedule.reduce(
+      (total, schedule) => total + schedule.money,
+      0,
+    );
 
     await this.planRepository.update(
       { id },
@@ -261,28 +277,30 @@ export class PlanService {
         totaldate: lastScehdule.date,
         totalmoney,
         type: PlanType.Self,
-      });
+      },
+    );
 
     // await this.deleteSetPlanTime(id);
 
     const findPlan = await this.planRepository.findOne({
-      where: { id }
-    })
+      where: { id },
+    });
 
-    const findPlace = await this.placeRepository.find({ where: { planId: id } });
+    const findPlace = await this.placeRepository.find({
+      where: { planId: id },
+    });
 
     return { findPlan, findPlace, totalschedule };
-
   }
 
   async findAll() {
     const plan = await this.planRepository.find();
 
     if (!plan || plan.length === 0) {
-      throw new NotFoundException("플랜이 없습니다")
+      throw new NotFoundException('플랜이 없습니다');
     }
 
-    return plan
+    return plan;
   }
 
   // 플랜 상세 조회 (여기서 총 지역,예산,일정 및 스케줄 조회)
@@ -292,12 +310,14 @@ export class PlanService {
     });
 
     if (!findOnePlan) {
-      throw new NotFoundException("플랜이 없습니다.");
+      throw new NotFoundException('플랜이 없습니다.');
     }
 
     const findSchedule = await this.scheduleService.findAll(id);
 
-    const findPlace = await this.placeRepository.find({ where: { planId: id } });
+    const findPlace = await this.placeRepository.find({
+      where: { planId: id },
+    });
 
     const category = await this.categoryService.findAll(id);
 
@@ -306,10 +326,9 @@ export class PlanService {
 
   // 플랜 삭제(동일 지역이 있을 경우 총 지역에 삭제 x)
   async remove(id: number, user: User) {
-
     const plan = await this.planRepository.findOne({
-      where: { id }
-    })
+      where: { id },
+    });
 
     if (!plan) {
       throw new NotFoundException('플랜을 찾을 수 없습니다.');
@@ -335,5 +354,38 @@ export class PlanService {
     await this.memberRepository.delete({ planId: id });
 
     return { plan };
+  }
+
+  // 좋아요 기능
+  async toggleFavorite(user: User, planId: number) {
+    const plan = await this.planRepository.findOneBy({ id: planId });
+    if (!plan) {
+      throw new BadRequestException(`${planId}번 플랜을 찾을 수 없습니다.`);
+    }
+
+    const existingFavorite = await this.favoriteRepository.findOne({
+      where: { user: { id: user.id }, plan: { id: planId } },
+    });
+    if (existingFavorite) {
+      await this.favoriteRepository.remove(existingFavorite);
+      return false;
+    } else {
+      const newFavorite = this.favoriteRepository.create({ user, plan });
+      await this.favoriteRepository.save(newFavorite);
+      return true;
+    }
+  }
+
+  // 좋아요 개수 조회
+  async getFavoriteCount(planId: number) {
+    const plan = await this.planRepository.findOneBy({ id: planId });
+    if (!plan) {
+      throw new Error(`${planId}번 플랜을 찾을 수 없습니다.`);
+    }
+
+    const favoriteCount = await this.favoriteRepository.count({
+      where: { plan: { id: planId } },
+    });
+    return favoriteCount;
   }
 }
