@@ -64,7 +64,7 @@ export class PlanService {
   async saveRedisPlan(userId : number, randomPickPlanId : number) {
     const redisClient = this.redisService.getClient();
     const key = `pickPlanId:${userId}:${randomPickPlanId}`;
-    const time = 30;
+    const time = 3600*12;
     await redisClient.set(key, randomPickPlanId, 'EX', time);
   }
 
