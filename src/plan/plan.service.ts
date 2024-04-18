@@ -122,11 +122,11 @@ export class PlanService {
       );
     }
 
-    const place = await this.areaRepository.findOne({where : {areaCode : placecode}});
+    const SpotAreacode = await this.placeRepository.findOne({where : {areacode : placecode}})
 
     // 플랜 자동 생성 검색
     const AllPlacePlan = await this.placeRepository.find({
-      where: { placename: place.name },
+      where: { areacode: SpotAreacode.areacode },
     });
 
     const AllCategoryPlan = await this.categoryRepository.find({
@@ -157,7 +157,7 @@ export class PlanService {
         if (placecode) {
           extractAutoPlan.andWhere('plan.id IN (:...placePlanId)', {placePlanId});
         }
-     }
+    }
 
     const findAutoPlan = await extractAutoPlan.getMany();
     
