@@ -125,6 +125,7 @@ export class PlanService {
       throw new BadRequestException('작성자만 등록할 수 있습니다.');
     }
 
+    // placecode는 areacode를 검색하기 위해 사용한다
     const { name, category, placecode, money, date } = pickPlanDto;
 
     let imageUrl = plan.image;
