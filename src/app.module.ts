@@ -37,6 +37,7 @@ import { Area } from './location/entities/area.entity';
 import { TourSpot } from './location/entities/tour-spot.entity';
 import { Tag } from './location/entities/tag.entity';
 import { TourSpotTag } from './location/entities/tour-spot-tag.entity';
+import { Checkpoint } from './location/entities/check-point.entity';
 
 const typeOrmModuleOptions = {
   useFactory: async (
@@ -66,6 +67,7 @@ const typeOrmModuleOptions = {
       ChatContent,
       Tag,
       TourSpotTag,
+      Checkpoint,
     ], // 엔티티는 반드시 여기에 명시!
     synchronize: configService.get('DB_SYNC'),
     logging: true,
