@@ -11,7 +11,7 @@ import { PlanType } from "../types/plan.type";
 export class Plan {
     @PrimaryGeneratedColumn({ unsigned: true })
     id: number;
-    @Column()
+    @Column({ default: "미정" })
     name: string;
     @Column({ type: 'int', nullable: false })
     userId: number;
@@ -21,7 +21,7 @@ export class Plan {
     totalmoney: number;
     @Column({ type: 'varchar', nullable: true })
     image: string;
-    @Column({type: "enum", enum: PlanType, default: PlanType.NonCreate})
+    @Column({ type: "enum", enum: PlanType, default: PlanType.NonCreate })
     type: PlanType;
     @CreateDateColumn()
     created_at: Date;
@@ -36,7 +36,7 @@ export class Plan {
     @OneToOne(() => ChatRoom, (room) => room.plan)
     room: ChatRoom;
     @OneToMany(() => Category, (category) => category.plan)
-    category : Category[];
+    category: Category[];
     @ManyToOne(() => User, (user) => user.plan, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'userId' })
     user: User;
