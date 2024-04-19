@@ -46,6 +46,7 @@ export class ScheduleService {
       .orderBy("schedule.date", "DESC")
       .getOne();
 
+    // placecode는 tourspot(자세한 지역)을 검색하는데 사용된다
     let { date, placecode, money } = createScheduleDto;
 
     // 입력받은 코드로 지역 조회
