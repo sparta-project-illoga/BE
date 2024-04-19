@@ -44,19 +44,6 @@ export class PlanService {
     private favoriteRepository: Repository<Favorite>,
   ) {}
 
-  async setPlanTime(planId: number) {
-    const redisClient = this.redisService.getClient();
-    const key = `plan_expiration:${planId}`;
-    const timeSet = 30;
-    await redisClient.set(key, 'true', 'EX', timeSet);
-  }
-
-  async deleteSetPlanTime(planId: number) {
-    const redisClient = this.redisService.getClient();
-    const key = `plan_expiration:${planId}`;
-    await redisClient.del(key);
-  }
-
   // 1. 플랜 생성 (단 총 예산과 일정은 추가가 안됨)
   async create(user: User) {
     const createPlan = await this.planRepository.save({
@@ -70,10 +57,41 @@ export class PlanService {
       type: MemberType.Leader,
     });
 
-    // await this.setPlanTime(createPlan.id);
-
     return { createPlan, memberLeader };
   }
+
+  // 제외하는 플랜 아이디 저장
+  async saveRedisPlan(userId : number, randomPickPlanId : number) {
+    const redisClient = this.redisService.getClient();
+    const key = `pickPlanId:${userId}:${randomPickPlanId}`;
+    const time = 3600*12;
+    await redisClient.set(key, randomPickPlanId, 'EX', time);
+  }
+
+  // 레디스에 저장된 플랜 아이디 조회
+  async getExludePlan(userId: number): Promise<number[]> {
+    return new Promise<number[]>((resolve, reject) => {
+      const redisClient = this.redisService.getClient();
+      const setKeyPattern = `pickPlanId:${userId}:*`;
+  
+      redisClient.keys(setKeyPattern, async (err, keys) => {
+        if (err) {
+          console.error(err);
+          reject(err);
+        } else {
+          const excludePlan = [];
+  
+          for (const key of keys) {
+            const value = await redisClient.get(key);
+            excludePlan.push(parseInt(value));
+          }
+  
+          resolve(excludePlan);
+        }
+      });
+    });
+  }
+  
 
   // 스케줄 자동 생성
   async createpassive(
@@ -91,6 +109,10 @@ export class PlanService {
     // 관련 카테고리 삭제
     await this.categoryRepository.delete({ planId: id });
 
+    const excludePlan = await this.getExludePlan(user.id);
+
+    console.log('제외하는 플랜:', excludePlan);
+
     const plan = await this.planRepository.findOne({
       where: { id },
     });
@@ -103,6 +125,7 @@ export class PlanService {
       throw new BadRequestException('작성자만 등록할 수 있습니다.');
     }
 
+    // placecode는 areacode를 검색하기 위해 사용한다
     const { name, category, placecode, money, date } = pickPlanDto;
 
     let imageUrl = plan.image;
@@ -124,13 +147,11 @@ export class PlanService {
       );
     }
 
-    const place = await this.areaRepository.findOne({
-      where: { areaCode: placecode },
-    });
+    const SpotAreacode = await this.placeRepository.findOne({where : {areacode : placecode}})
 
     // 플랜 자동 생성 검색
     const AllPlacePlan = await this.placeRepository.find({
-      where: { placename: place.name },
+      where: { areacode: SpotAreacode.areacode },
     });
 
     const AllCategoryPlan = await this.categoryRepository.find({
@@ -148,28 +169,28 @@ export class PlanService {
     if (true) {
       extractAutoPlan.where('plan.type = :type', { type: PlanType.Self });
 
-      if (category) {
-        extractAutoPlan.andWhere('plan.id IN (:...categoryPlanId)', {
-          categoryPlanId,
-        });
-      }
+        if (category) {
+          extractAutoPlan.andWhere('plan.id IN (:...categoryPlanId)', {categoryPlanId});
+        }
+      
+        if (money) {
+          extractAutoPlan.andWhere('plan.totalmoney <= :money', { money });
+        }
+      
+        if (date) {
+          extractAutoPlan.andWhere('plan.totaldate = :date', { date });
+        }
+      
+        if (placecode) {
+          extractAutoPlan.andWhere('plan.id IN (:...placePlanId)', {placePlanId});
+        }
+     }
 
-      if (money) {
-        extractAutoPlan.andWhere('plan.totalmoney <= :money', { money });
-      }
+    let findAutoPlan = await extractAutoPlan.getMany();
 
-      if (date) {
-        extractAutoPlan.andWhere('plan.totaldate <= :date', { date });
-      }
+    findAutoPlan = findAutoPlan.filter(plan => !excludePlan.includes(plan.id));
 
-      if (placecode) {
-        extractAutoPlan.andWhere('plan.id IN (:...placePlanId)', {
-          placePlanId,
-        });
-      }
-    }
-
-    const findAutoPlan = await extractAutoPlan.getMany();
+    console.log(findAutoPlan)
 
     if (findAutoPlan.length === 0) {
       throw new NotFoundException('플랜을 찾을 수 없습니다.');
@@ -202,8 +223,6 @@ export class PlanService {
       0,
     );
 
-    // await this.deleteSetPlanTime(id);
-
     await this.planRepository.update(
       { id },
       {
@@ -214,6 +233,8 @@ export class PlanService {
         type: PlanType.Auto,
       },
     );
+
+    await this.saveRedisPlan(user.id, randomPickPlan.id);
 
     return totalschedule;
   }
@@ -279,8 +300,6 @@ export class PlanService {
         type: PlanType.Self,
       },
     );
-
-    // await this.deleteSetPlanTime(id);
 
     const findPlan = await this.planRepository.findOne({
       where: { id },

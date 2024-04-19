@@ -6,9 +6,10 @@ import { Schedule } from './entities/schedule.entity';
 import { Place } from 'src/plan/entities/place.entity';
 import { Plan } from 'src/plan/entities/plan.entity';
 import { Area } from 'src/location/entities/area.entity';
+import { TourSpot } from 'src/location/entities/tour-spot.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Schedule, Place, Plan, Area])],
+  imports: [TypeOrmModule.forFeature([Schedule, Place, Plan, TourSpot])],
   providers: [ScheduleService],
   controllers: [ScheduleController],
   exports: [ScheduleService, TypeOrmModule],
