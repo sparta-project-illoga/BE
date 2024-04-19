@@ -7,19 +7,19 @@ import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { Place } from 'src/plan/entities/place.entity';
 import { Plan } from 'src/plan/entities/plan.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Area } from 'src/location/entities/area.entity';
+import { TourSpot } from 'src/location/entities/tour-spot.entity';
 
 @Injectable()
 export class ScheduleService {
   constructor(
     @InjectRepository(Schedule)
-    private ScheduleRepository: Repository<Schedule>,
+    private readonly ScheduleRepository: Repository<Schedule>,
     @InjectRepository(Place)
-    private placeRepository: Repository<Place>,
+    private readonly placeRepository: Repository<Place>,
     @InjectRepository(Plan)
-    private planRepository: Repository<Plan>,
-    @InjectRepository(Area)
-    private areaRepository: Repository<Area>,
+    private readonly planRepository: Repository<Plan>,
+    @InjectRepository(TourSpot)
+    private readonly tourSpotRepository: Repository<TourSpot>,
   ) { }
 
   // 스케쥴 생성
@@ -46,30 +46,33 @@ export class ScheduleService {
       .orderBy("schedule.date", "DESC")
       .getOne();
 
+    // placecode는 tourspot(자세한 지역)을 검색하는데 사용된다
     let { date, placecode, money } = createScheduleDto;
 
     // 입력받은 코드로 지역 조회
-    const place = await this.areaRepository.findOne({ where: { areaCode: placecode } });
+    const place = await this.tourSpotRepository.findOne({ where: { id: placecode } });
 
     if (!lastschedule) {
       const createSchedule = await this.ScheduleRepository.save({
         date: 1,
-        place: place.name,
+        place: place.title,
         money,
         planId: planId,
       });
 
       // 지역이 이미 존재하는지 확인
       const exitPlace = await this.placeRepository.findOne({
-        where: { planId, placename: place.name }
+        where: { planId, placename: place.title }
       });
 
       // 존재하지 않으면 총지역에 추가한다
       if (!exitPlace) {
         await this.placeRepository.save({
           planId: planId,
-          placename: place.name
-        })
+          placename: place.title,
+          areacode: parseInt(place.areaCode),
+        });
+        
       }
 
       return { createSchedule };
@@ -79,21 +82,22 @@ export class ScheduleService {
       // 스케줄 생성
       const createSchedule = await this.ScheduleRepository.save({
         date,
-        place: place.name,
+        place: place.title,
         money,
         planId: planId,
       });
 
       // 지역이 이미 존재하는지 확인
       const exitPlace = await this.placeRepository.findOne({
-        where: { planId, placename: place.name }
+        where: { planId, placename: place.title }
       });
 
       // 존재하지 않으면 총지역에 추가한다
       if (!exitPlace) {
         await this.placeRepository.save({
           planId: planId,
-          placename: place.name
+          placename: place.title,
+          areacode: parseInt(place.areaCode),
         })
       }
 
@@ -167,7 +171,7 @@ export class ScheduleService {
 
     const { placecode, money } = updateScheduleDto;
 
-    const placedata = await this.areaRepository.findOne({ where: { areaCode: placecode } });
+    const placedata = await this.tourSpotRepository.findOne({ where: { id: placecode } });
 
     const findSchedule = await this.ScheduleRepository.findOne({
       where: { planId: planId, id: id }
@@ -180,7 +184,7 @@ export class ScheduleService {
     const updateSchedule = await this.ScheduleRepository.update(
       { id },
       {
-        place : placedata.name,
+        place : placedata.title,
         money
       }
     );
