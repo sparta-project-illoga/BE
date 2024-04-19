@@ -11,6 +11,7 @@ import { Post } from 'src/post/entities/post.entity';
 import { PuppeteerService } from 'src/utils/puppeteer.service';
 import { TourSpotTag } from './entities/tour-spot-tag.entity';
 import { Tag } from './entities/tag.entity';
+import { Checkpoint } from './entities/check-point.entity';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { Tag } from './entities/tag.entity';
       Post,
       TourSpotTag,
       Tag,
+      Checkpoint,
     ]),
     ConfigModule,
   ],
