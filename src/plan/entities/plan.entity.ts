@@ -25,7 +25,7 @@ export class Plan {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @Column()
+  @Column({ default: "미정" })
   name: string;
 
   @Column({ type: 'int', nullable: false })
