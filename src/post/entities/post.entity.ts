@@ -8,7 +8,6 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
-  //   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -50,7 +49,7 @@ export class Post {
   @JoinColumn()
   user: User;
 
-  @OneToMany(() => PostComment, (postComment) => postComment.user)
+  @OneToMany(() => PostComment, (postComment) => postComment.post)
   postComment: PostComment[];
 
   @ManyToOne(() => Area)

@@ -15,6 +15,10 @@ export class Place {
     @IsString()
     placename: string
 
+    @Column( {nullable : true})
+    @IsNumber()
+    areacode: number
+
     @ManyToOne(() => Plan, (plan) => plan.place, {onDelete: "CASCADE"})
     @JoinColumn({name: "planId"})
     plan: Plan;

@@ -58,4 +58,17 @@ export class ChatController {
       text,
     }
   }
+
+  @Get('room')
+  @ApiOperation({ summary: '채팅방 조회', description: 'userId를 주면 내가 속한 채팅방 조회한다.' })
+  //@Param('userId') userId: number, 
+  async findRoom(@UserInfo() user: User,) {
+    const rooms = await this.chatService.findRoom(user.id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: '내 채팅방 조회에 성공했습니다.',
+      rooms,
+    }
+  }
 }
