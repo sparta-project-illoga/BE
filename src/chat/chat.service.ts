@@ -77,27 +77,25 @@ export class ChatService {
 
       cArr.push({ name: user.nickname, chat: chat });
     }
-    return cArr;
+
+    const chat = { "room": room, "content": cArr }
+    return chat;
   }
 
-  //내가 속한 채팅방 조회
-  async findRoom(userId: number) {
-    const rooms = await this.planRepository.find({ where: { userId } });
-    let plan = [];
-    let chatRooms = [];
+  //유저가 속한 플랜과 채팅방 조회
+  async getPlanNChat(userId: number) {
+    const plans = await this.planRepository.find({ where: { userId } });
+    let planchat = [];
 
-    for (let i = 0; i < rooms.length; i++) {
-      plan.push(rooms[i].id);
-      const room = await this.chatroomRepository.findOneBy({ planId: rooms[i].id });
+    for (let i = 0; i < plans.length; i++) {
+      const room = await this.chatroomRepository.findOneBy({ planId: plans[i].id });
       if (!room) {
-        console.log(`${rooms[i].id} 플랜의 채팅방이 존재하지 않습니다.`)
-        continue;
+        console.log(`${plans[i].id} 플랜의 채팅방이 존재하지 않습니다.`);
       }
-      chatRooms.push(room);
+      const pr = { "plan": plans[i], "room": room };
+      planchat.push({ "PlanRoom": pr });
     }
 
-    console.log("해당 유저의 planId : ", plan);
-
-    return chatRooms;
+    return planchat;
   }
 }
