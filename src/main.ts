@@ -25,7 +25,13 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  app.enableCors();
+  app.enableCors({
+    origin: "http://localhost:3002", // 이부분 수정하면 됩니다.
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+    credentials: true, // withCredentials 사용 시 true로 설정
+  });
 
   await app.listen(3000);
 }
