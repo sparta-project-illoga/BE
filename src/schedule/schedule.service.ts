@@ -97,7 +97,7 @@ export class ScheduleService {
       return { createSchedule };
     }
     // 일정 확인 (마지막 일정보다 같거나 +1 커야만 한다)
-    else if (lastschedule.date === date || lastschedule.date + 1 === date) {
+    else if (date >= 1 && (lastschedule.date >= date || lastschedule.date + 1 === date)) {
       // 스케줄 생성
       const createSchedule = await this.ScheduleRepository.save({
         date,
@@ -174,7 +174,7 @@ export class ScheduleService {
 
     const schedule = await this.ScheduleRepository.find({
       where: { planId },
-      order: { id: "ASC" }
+      order: { date: "ASC" }
     });
 
     return { schedule };
