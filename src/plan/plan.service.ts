@@ -6,7 +6,7 @@ import {
 import { CreatePlanDto } from './dto/create-plan.dto';
 import { PickPlanDto } from './dto/pick-plan.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThan, Like, Repository, ReturnDocument } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { Plan } from './entities/plan.entity';
 import { ScheduleService } from '../schedule/schedule.service';
 import { Place } from './entities/place.entity';
@@ -42,7 +42,7 @@ export class PlanService {
     private areaRepository: Repository<Area>,
     @InjectRepository(Favorite)
     private favoriteRepository: Repository<Favorite>,
-  ) {}
+  ) { }
 
   // 1. 플랜 생성 (단 총 예산과 일정은 추가가 안됨)
   async create(user: User) {
@@ -61,10 +61,10 @@ export class PlanService {
   }
 
   // 제외하는 플랜 아이디 저장
-  async saveRedisPlan(userId : number, randomPickPlanId : number) {
+  async saveRedisPlan(userId: number, randomPickPlanId: number) {
     const redisClient = this.redisService.getClient();
     const key = `pickPlanId:${userId}:${randomPickPlanId}`;
-    const time = 3600*12;
+    const time = 3600 * 12;
     await redisClient.set(key, randomPickPlanId, 'EX', time);
   }
 
@@ -73,25 +73,24 @@ export class PlanService {
     return new Promise<number[]>((resolve, reject) => {
       const redisClient = this.redisService.getClient();
       const setKeyPattern = `pickPlanId:${userId}:*`;
-  
+
       redisClient.keys(setKeyPattern, async (err, keys) => {
         if (err) {
           console.error(err);
           reject(err);
         } else {
           const excludePlan = [];
-  
+
           for (const key of keys) {
             const value = await redisClient.get(key);
             excludePlan.push(parseInt(value));
           }
-  
+
           resolve(excludePlan);
         }
       });
     });
   }
-  
 
   // 스케줄 자동 생성
   async createpassive(
@@ -145,8 +144,9 @@ export class PlanService {
       );
     }
 
-    // arecode 없으면 없다고 에러 해야 한다
-    const SpotAreacode = await this.placeRepository.findOne({where : {areacode : placecode}})
+    const SpotAreacode = await this.placeRepository.findOne({
+      where: { areacode: placecode },
+    });
 
     // 플랜 자동 생성 검색
     const AllPlacePlan = await this.placeRepository.find({
@@ -168,26 +168,34 @@ export class PlanService {
     if (true) {
       extractAutoPlan.where('plan.type = :type', { type: PlanType.Self });
 
-        if (category) {
-          extractAutoPlan.andWhere('plan.id IN (:...categoryPlanId)', {categoryPlanId});
-        }
-      
-        if (money) {
-          extractAutoPlan.andWhere('plan.totalmoney <= :money', { money });
-        }
-      
-        if (date) {
-          extractAutoPlan.andWhere('plan.totaldate = :date', { date });
-        }
-      
-        if (placecode) {
-          extractAutoPlan.andWhere('plan.id IN (:...placePlanId)', {placePlanId});
-        }
-     }
+      if (category) {
+        extractAutoPlan.andWhere('plan.id IN (:...categoryPlanId)', {
+          categoryPlanId,
+        });
+      }
+
+      if (money) {
+        extractAutoPlan.andWhere('plan.totalmoney <= :money', { money });
+      }
+
+      if (date) {
+        extractAutoPlan.andWhere('plan.totaldate = :date', { date });
+      }
+
+      if (placecode) {
+        extractAutoPlan.andWhere('plan.id IN (:...placePlanId)', {
+          placePlanId,
+        });
+      }
+    }
 
     let findAutoPlan = await extractAutoPlan.getMany();
 
-    findAutoPlan = findAutoPlan.filter(plan => !excludePlan.includes(plan.id));
+    findAutoPlan = findAutoPlan.filter(
+      (plan) => !excludePlan.includes(plan.id),
+    );
+
+    console.log(findAutoPlan);
 
     if (findAutoPlan.length === 0) {
       throw new NotFoundException('플랜을 찾을 수 없습니다.');
@@ -280,20 +288,11 @@ export class PlanService {
       throw new NotFoundException('스케줄을 입력하지 않았습니다.');
     }
 
-    const lastScehdule = await this.scheduleService.lastScehdule(id);
-
-    const totalmoney = totalschedule.schedule.reduce(
-      (total, schedule) => total + schedule.money,
-      0,
-    );
-
     await this.planRepository.update(
       { id },
       {
         name: createPlanDto.name,
         image: `${imageName}.${ext}`,
-        totaldate: lastScehdule.date,
-        totalmoney,
         type: PlanType.Self,
       },
     );
@@ -309,6 +308,7 @@ export class PlanService {
     return { findPlan, findPlace, totalschedule };
   }
 
+  // 플랜 전체 조회
   async findAll() {
     const plan = await this.planRepository.find();
 
@@ -319,6 +319,16 @@ export class PlanService {
     return plan;
   }
 
+  // 플랜 전체 조회 (빈플랜 제외)
+  async findAllNew() {
+    const plan = await this.planRepository.find({
+      where: [{ totaldate: Not(IsNull()), totalmoney: Not(IsNull()) }],
+    });
+    if (!plan || plan.length === 0) {
+      throw new NotFoundException('플랜이 없습니다');
+    }
+    return plan;
+  }
   // 플랜 상세 조회 (여기서 총 지역,예산,일정 및 스케줄 조회)
   async findOne(id: number) {
     const findOnePlan = await this.planRepository.findOne({
@@ -384,11 +394,15 @@ export class PlanService {
     });
     if (existingFavorite) {
       await this.favoriteRepository.remove(existingFavorite);
-      return false;
+      plan.favoriteCount -= 1;
+      await this.planRepository.save(plan);
+      return `${planId}번 플랜 좋아요 취소`;
     } else {
       const newFavorite = this.favoriteRepository.create({ user, plan });
       await this.favoriteRepository.save(newFavorite);
-      return true;
+      plan.favoriteCount += 1;
+      await this.planRepository.save(plan);
+      return `${planId}번 플랜 좋아요`;
     }
   }
 
@@ -399,9 +413,20 @@ export class PlanService {
       throw new Error(`${planId}번 플랜을 찾을 수 없습니다.`);
     }
 
-    const favoriteCount = await this.favoriteRepository.count({
-      where: { plan: { id: planId } },
-    });
-    return favoriteCount;
+    return {
+      planId: planId,
+      favoriteCount: plan.favoriteCount,
+    };
+  }
+
+  // 플랜 조회 (좋아요 내림차순)
+  async popularPlans() {
+    const plans = await this.planRepository
+      .createQueryBuilder('plan')
+      .where('plan.favoriteCount > 0')
+      .orderBy('plan.favoriteCount', 'DESC')
+      .getMany();
+
+    return plans;
   }
 }

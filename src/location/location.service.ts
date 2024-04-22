@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { Location } from './entities/location.entity';
 import { User } from 'src/user/entities/user.entity';
 import axios from 'axios';
@@ -12,6 +12,8 @@ import * as path from 'path';
 import { PuppeteerService } from 'src/utils/puppeteer.service';
 import { TourSpotTag } from './entities/tour-spot-tag.entity';
 import { Tag } from './entities/tag.entity';
+import { Checkpoint } from './entities/check-point.entity';
+import { chunk } from 'lodash';
 @Injectable()
 export class LocationService {
   constructor(
@@ -27,6 +29,8 @@ export class LocationService {
     private readonly tourSpotTagRepository: Repository<TourSpotTag>,
     @InjectRepository(Tag)
     private readonly tagRepository: Repository<Tag>,
+    @InjectRepository(Checkpoint)
+    private readonly checkpointRepository: Repository<Checkpoint>,
     private readonly configService: ConfigService,
     private readonly puppeteerService: PuppeteerService,
   ) {}
@@ -112,89 +116,114 @@ export class LocationService {
     }
   }
 
+  // 여행지 데이터 저장
   async addTourSpot() {
     try {
       const files = await fs.promises.readdir('./src/location/data/');
-      for (const file of files) {
-        if (file.startsWith('areaBasedList') && file.endsWith('.json')) {
+      const filePromises = files
+        .filter(
+          (file) => file.startsWith('areaBasedList') && file.endsWith('.json'),
+        )
+        .map(async (file) => {
           const filePath = path.join('./src/location/data/', file);
           const tourSpotData = await fs.promises.readFile(filePath, 'utf-8');
           const parsedTourSpotData = JSON.parse(tourSpotData);
           const tourSpotItems = parsedTourSpotData.response.body.items.item;
-          for (const item of tourSpotItems) {
-            const existingTourSpot = await this.tourSpotRepository.findOne({
-              where: { contentId: item.contentid },
-            });
-            if (!existingTourSpot) {
-              const tourSpot = this.tourSpotRepository.create({
-                addr1: item.addr1,
-                addr2: item.addr2,
-                areaCode: item.areacode,
-                bookTour: item.booktour,
-                cat1: item.cat1,
-                cat2: item.cat2,
-                cat3: item.cat3,
-                contentId: item.contentid,
-                contentTypeId: item.contenttypeid,
-                createdTime: item.createdtime,
-                firstImage: item.firstimage,
-                firstImage2: item.firstimage2,
-                cpyrhtDivCd: item.cpyrhtDivCd,
-                mapX: item.mapx,
-                mapY: item.mapy,
-                mlevel: item.mlevel,
-                modifiedTime: item.modifiedtime,
-                sigunguCode: item.sigungucode,
-                tel: item.tel,
-                title: item.title,
-                zipCode: item.zipcode,
+          await Promise.all(
+            tourSpotItems.map(async (item) => {
+              const existingTourSpot = await this.tourSpotRepository.findOne({
+                where: { contentId: item.contentid },
               });
-              await this.tourSpotRepository.save(tourSpot);
-            }
-          }
-        }
-      }
+              if (!existingTourSpot) {
+                const tourSpot = this.tourSpotRepository.create({
+                  addr1: item.addr1,
+                  addr2: item.addr2,
+                  areaCode: item.areacode,
+                  bookTour: item.booktour,
+                  cat1: item.cat1,
+                  cat2: item.cat2,
+                  cat3: item.cat3,
+                  contentId: item.contentid,
+                  contentTypeId: item.contenttypeid,
+                  createdTime: item.createdtime,
+                  firstImage: item.firstimage,
+                  firstImage2: item.firstimage2,
+                  cpyrhtDivCd: item.cpyrhtDivCd,
+                  mapX: item.mapx,
+                  mapY: item.mapy,
+                  mlevel: item.mlevel,
+                  modifiedTime: item.modifiedtime,
+                  sigunguCode: item.sigungucode,
+                  tel: item.tel,
+                  title: item.title,
+                  zipCode: item.zipcode,
+                });
+                await this.tourSpotRepository.save(tourSpot);
+              }
+            }),
+          );
+        });
+      await Promise.all(filePromises);
       return { message: '데이터 추가 성공' };
     } catch (error) {
       throw new Error('데이터 추가 실패');
     }
   }
 
-  async findAllTourSpot() {
-    const tourSpots = await this.tourSpotRepository.find({
+  // 여행지 정보검색 (전체)
+  async findAllTourSpot(page: number, limit: number) {
+    const [results, total] = await this.tourSpotRepository.findAndCount({
       relations: ['tourSpotTags', 'tourSpotTags.tag'],
+      skip: (page - 1) * limit,
+      take: limit,
     });
-    return tourSpots.map((tourSpot) => ({
-      ...tourSpot,
-      tourSpotTags: tourSpot.tourSpotTags.map(
-        (tourSpotTag) => tourSpotTag.tag.name,
-      ),
-    }));
+
+    return {
+      data: results.map((tourSpot) => ({
+        ...tourSpot,
+        tourSpotTags: tourSpot.tourSpotTags.map(
+          (tourSpotTag) => tourSpotTag.tag.name,
+        ),
+      })),
+      count: total,
+      page: page,
+      limit: limit,
+    };
   }
 
-  // 여행지 원본 조회
-  async searchTourSpot(areaCode: string) {
+  // // 여행지 정보검색 (지역코드)
+  async searchTourSpot(areaCode: string, page: number, limit: number) {
     try {
-      const tourSpots = await this.tourSpotRepository.find({
+      const [tourSpots, total] = await this.tourSpotRepository.findAndCount({
         where: { areaCode: areaCode },
+        skip: (page - 1) * limit,
+        take: limit,
       });
-      return tourSpots;
+
+      return {
+        data: tourSpots,
+        count: total,
+        page: page,
+        limit: limit,
+      };
     } catch (error) {
       throw new Error('여행지 검색에 실패했습니다.');
     }
   }
 
-  // 여행지 검색
-  async searchTourSpotByKeyword(keyword: string) {
+  // 여행지 정보검색 (키워드)
+  async searchTourSpotByKeyword(keyword: string, page: number, limit: number) {
     try {
-      const tourSpots = await this.tourSpotRepository
+      const [tourSpots, total] = await this.tourSpotRepository
         .createQueryBuilder('tourSpot')
         .leftJoinAndSelect('tourSpot.tourSpotTags', 'tourSpotTags')
         .leftJoinAndSelect('tourSpotTags.tag', 'tag')
         .addSelect(['tourSpot.title', 'tag.name'])
         .where('tourSpot.title LIKE :keyword', { keyword: `%${keyword}%` })
         .orWhere('tag.name LIKE :keyword', { keyword: `%${keyword}%` })
-        .getMany();
+        .skip((page - 1) * limit)
+        .take(limit)
+        .getManyAndCount();
 
       const tourSpotsWithTags = tourSpots.map((tourSpot) => {
         const { tourSpotTags, ...tourSpotWithoutTags } = tourSpot;
@@ -204,7 +233,12 @@ export class LocationService {
         };
       });
 
-      return tourSpotsWithTags;
+      return {
+        data: tourSpotsWithTags,
+        count: total,
+        page: page,
+        limit: limit,
+      };
     } catch (error) {
       throw new Error('여행지를 찾을수 없습니다.');
     }
@@ -213,38 +247,89 @@ export class LocationService {
   // 여행지에 태그 스크롤링해서 넣기
   async searchTourSpotByPuppeteer() {
     try {
-      const tourSpots = await this.tourSpotRepository.find();
+      const checkpointInfo = await this.loadCheckpoint();
 
-      for (const tourSpot of tourSpots) {
-        const keyword = tourSpot.title;
-        const scrapedData =
-          await this.puppeteerService.getSearchContent(keyword);
-        console.log(scrapedData);
+      const tourSpots = await this.tourSpotRepository.find({
+        where: { id: MoreThan(checkpointInfo.lastProcessedTourSpotId) },
+      });
 
-        await this.tourSpotTagRepository.delete({
-          tourSpot: { id: tourSpot.id },
+      const CHUNK_SIZE = 5; // 한 번에 처리할 여행지의 수를 설정합니다.
+      const tourSpotChunks = chunk(tourSpots, CHUNK_SIZE);
+
+      for (const tourSpotChunk of tourSpotChunks) {
+        const tourSpotPromises = tourSpotChunk.map(async (tourSpot) => {
+          const keyword = tourSpot.title;
+          const scrapedData =
+            await this.puppeteerService.getSearchContent(keyword);
+          console.log(scrapedData);
+
+          await this.tourSpotTagRepository.delete({
+            tourSpot: { id: tourSpot.id },
+          });
+
+          const tourSpotTagsPromises = scrapedData.flatMap((data) =>
+            data.tags.map(async (tagName) => {
+              const tourSpotTag = new TourSpotTag();
+              let tag = await this.tagRepository.findOne({
+                where: { name: tagName },
+              });
+              if (!tag) {
+                tag = this.tagRepository.create({ name: tagName });
+                tag = await this.tagRepository.save(tag);
+              }
+              tourSpotTag.tourSpot = tourSpot;
+              tourSpotTag.tag = tag;
+              return tourSpotTag;
+            }),
+          );
+          const tourSpotTags = await Promise.all(tourSpotTagsPromises);
+          await this.tourSpotTagRepository.save(tourSpotTags);
+          await this.saveCheckpoint(tourSpot.id);
         });
 
-        const tourSpotTagsPromises = scrapedData.flatMap((data) =>
-          data.tags.map(async (tagName) => {
-            const tourSpotTag = new TourSpotTag();
-            let tag = await this.tagRepository.findOne({
-              where: { name: tagName },
-            });
-            if (!tag) {
-              tag = this.tagRepository.create({ name: tagName });
-              tag = await this.tagRepository.save(tag);
-            }
-            tourSpotTag.tourSpot = tourSpot;
-            tourSpotTag.tag = tag;
-            return tourSpotTag;
-          }),
-        );
-        const tourSpotTags = await Promise.all(tourSpotTagsPromises);
-        await this.tourSpotTagRepository.save(tourSpotTags);
+        await Promise.all(tourSpotPromises);
       }
+
+      await this.resetCheckpoint();
     } catch (error) {
+      setTimeout(async () => {
+        try {
+          await this.searchTourSpotByPuppeteer();
+        } catch (error) {
+          console.error('재시도 중 에러가 발생했습니다.', error);
+        }
+      }, 300);
       throw new Error('여행지 검색에 실패했습니다.');
     }
+  }
+
+  /*---------------체크포인트---------------*/
+  private async loadCheckpoint(): Promise<Checkpoint> {
+    const checkpointInfo = await this.checkpointRepository.findOne({
+      where: { id: 1 },
+    });
+    return checkpointInfo || new Checkpoint();
+  }
+
+  private async saveCheckpoint(lastProcessedTourSpotId: number): Promise<void> {
+    let checkpointInfo = await this.checkpointRepository.findOne({
+      where: { id: 1 },
+    });
+    if (!checkpointInfo) {
+      checkpointInfo = new Checkpoint();
+    }
+    checkpointInfo.lastProcessedTourSpotId = lastProcessedTourSpotId;
+    await this.checkpointRepository.save(checkpointInfo);
+  }
+
+  private async resetCheckpoint(): Promise<void> {
+    let checkpointInfo = await this.checkpointRepository.findOne({
+      where: { id: 1 },
+    });
+    if (!checkpointInfo) {
+      checkpointInfo = new Checkpoint();
+    }
+    checkpointInfo.lastProcessedTourSpotId = 0;
+    await this.checkpointRepository.save(checkpointInfo);
   }
 }
