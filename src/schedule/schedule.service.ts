@@ -29,6 +29,7 @@ export class ScheduleService {
     user: User
   ) {
 
+    // 플랜이 있는지 없는지 확인
     const checkUserPlan = await this.planRepository.findOne({
       where: { id: planId }
     });
@@ -51,7 +52,17 @@ export class ScheduleService {
 
     // 입력받은 코드로 지역 조회
     const place = await this.tourSpotRepository.findOne({ where: { id: placecode } });
+  
+    // 한 일정에 같은 지역을 못넣게 한다
+    const existSchedule = await this.ScheduleRepository.findOne({
+      where : {planId, date, place : place.title}
+    });
 
+    if(existSchedule) {
+      throw new BadRequestException('한 일정에 같은 장소를 등록할 수 없습니다.');
+    }
+
+    // 스케줄 생성
     if (!lastschedule) {
       const createSchedule = await this.ScheduleRepository.save({
         date: 1,
@@ -59,6 +70,14 @@ export class ScheduleService {
         money,
         planId: planId,
       });
+
+      await this.planRepository.update(
+        {id : planId},
+        {
+          totaldate : 1,
+          totalmoney : createSchedule.money
+        }
+      )
 
       // 지역이 이미 존재하는지 확인
       const exitPlace = await this.placeRepository.findOne({
@@ -86,6 +105,14 @@ export class ScheduleService {
         money,
         planId: planId,
       });
+
+      await this.planRepository.update(
+        {id : planId},
+        {
+          totaldate : createSchedule.date,
+          totalmoney : checkUserPlan.totalmoney + createSchedule.money
+        }
+      )
 
       // 지역이 이미 존재하는지 확인
       const exitPlace = await this.placeRepository.findOne({
@@ -157,6 +184,7 @@ export class ScheduleService {
   // 스케줄 수정
   async update(planId: number, id: number, updateScheduleDto: UpdateScheduleDto, user: User) {
 
+    // 플랜이 있는지 확인
     const checkUserPlan = await this.planRepository.findOne({
       where: { id: planId }
     });
@@ -171,16 +199,27 @@ export class ScheduleService {
 
     const { placecode, money } = updateScheduleDto;
 
+    // 입력한 placecode에 해당하는 데이터 찾기
     const placedata = await this.tourSpotRepository.findOne({ where: { id: placecode } });
 
     const findSchedule = await this.ScheduleRepository.findOne({
-      where: { planId: planId, id: id }
+      where: { id: id }
     });
 
     if (!findSchedule) {
       throw new BadGatewayException("존재하지 않는 스케줄입니다");
     }
 
+    // 한 일정에 같은 지역을 못넣게 한다
+    const existSchedule = await this.ScheduleRepository.findOne({
+      where : {planId, date : findSchedule.date, place : placedata.title}
+    });
+
+    if(existSchedule) {
+      throw new BadRequestException('한 일정에 같은 장소를 등록할 수 없습니다.');
+    }
+
+    // 스케줄 업데이트
     const updateSchedule = await this.ScheduleRepository.update(
       { id },
       {
@@ -189,6 +228,41 @@ export class ScheduleService {
       }
     );
 
+    // 삭제할 지역 찾기
+    const deletePlaceCount = await this.ScheduleRepository.count({
+      where: { planId, place: findSchedule.place }
+    });
+
+    // 삭제할 지역의 개수가 1개면 총지역에서 삭제한다
+    if (deletePlaceCount < 1) {
+      await this.placeRepository.delete({
+        planId,
+        placename: findSchedule.place
+      });
+    }
+
+    // 지역이 이미 존재하는지 확인
+    const exitPlace = await this.placeRepository.findOne({
+      where: { planId, placename: placedata.title }
+    });
+
+    // 존재하지 않으면 총지역에 추가한다
+    if (!exitPlace) {
+      await this.placeRepository.save({
+        planId: planId,
+        placename: placedata.title,
+        areacode: parseInt(placedata.areaCode),
+      });
+    }
+
+
+    // 플랜 예산 및 일정 수정
+    await this.planRepository.update(
+      {id: planId},
+      {totalmoney : checkUserPlan.totalmoney - findSchedule.money + money}
+    );
+
+    
     return updateSchedule;
   }
 
@@ -255,22 +329,22 @@ export class ScheduleService {
       where: { id: planId }
     })
 
-    // 플랜의 마지막 스케쥴
-    const lastschedule = await this.ScheduleRepository.createQueryBuilder("schedule")
-      .where("schedule.planId = :planId", { planId })
-      .orderBy("schedule.date", "DESC")
-      .getOne();
-
-    // 플랜에서 총예산 - 삭제하는 스케쥴 예산, 총여행기간 수정
-    await this.planRepository.update(
-      { id: planId },
-      {
-        totalmoney: findtotaldata.totalmoney - deleteSchedule.money,
-        totaldate: lastschedule.date
-      });
-
     // 스케줄 삭제
     await this.ScheduleRepository.delete(id);
+
+     // 플랜의 마지막 스케쥴
+     const lastschedule = await this.ScheduleRepository.createQueryBuilder("schedule")
+     .where("schedule.planId = :planId", { planId })
+     .orderBy("schedule.date", "DESC")
+     .getOne();
+
+   // 플랜에서 총예산 - 삭제하는 스케쥴 예산, 총여행기간 수정
+   await this.planRepository.update(
+     { id: planId },
+     {
+       totalmoney: findtotaldata.totalmoney - deleteSchedule.money,
+       totaldate: lastschedule.date
+     });
 
     return deleteSchedule;
   }
