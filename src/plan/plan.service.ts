@@ -111,8 +111,6 @@ export class PlanService {
 
     const excludePlan = await this.getExludePlan(user.id);
 
-    console.log('제외하는 플랜:', excludePlan);
-
     const plan = await this.planRepository.findOne({
       where: { id },
     });
@@ -147,6 +145,7 @@ export class PlanService {
       );
     }
 
+    // arecode 없으면 없다고 에러 해야 한다
     const SpotAreacode = await this.placeRepository.findOne({where : {areacode : placecode}})
 
     // 플랜 자동 생성 검색
@@ -189,8 +188,6 @@ export class PlanService {
     let findAutoPlan = await extractAutoPlan.getMany();
 
     findAutoPlan = findAutoPlan.filter(plan => !excludePlan.includes(plan.id));
-
-    console.log(findAutoPlan)
 
     if (findAutoPlan.length === 0) {
       throw new NotFoundException('플랜을 찾을 수 없습니다.');
