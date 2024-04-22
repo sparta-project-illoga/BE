@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  HttpStatus,
   UseGuards,
   UploadedFile,
   UseInterceptors,
@@ -21,7 +20,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('plan')
 export class PlanController {
-  constructor(private readonly planService: PlanService) {}
+  constructor(private readonly planService: PlanService) { }
 
   // 1. 플랜 생성 post
   // 2. 플랜에 총예산/일정 넣기 patch
@@ -39,7 +38,7 @@ export class PlanController {
 
   // 플랜 스케줄 자동 생성
   @UseGuards(AuthGuard('jwt'))
-  @Patch('/passivity/:id')
+  @Patch('/:id/passivity') // 플랜 id 앞으로 땡김
   @UseInterceptors(FileInterceptor('file'))
   async createpassive(
     @Param('id') id: number,
@@ -59,7 +58,7 @@ export class PlanController {
 
   // 플랜 스케쥴 직접 등록
   @UseGuards(AuthGuard('jwt'))
-  @Patch('activeness/:id')
+  @Patch('/:id/activeness') // 플랜 id 앞으로 땡김
   @UseInterceptors(FileInterceptor('file'))
   async update(
     @Param('id') id: number,
@@ -83,6 +82,18 @@ export class PlanController {
     return this.planService.findAll();
   }
 
+  // 플랜 조회 (좋아요 내림차순)
+  @Get('popular')
+  async getPopularPlans() {
+    return this.planService.popularPlans();
+  }
+
+  // 플랜 조회 (빈플랜 제외)
+  @Get('new')
+  async findAllNew() {
+    return this.planService.findAllNew();
+  }
+
   // 플랜 상세 조회
   @Get(':id')
   async findOne(@Param('id') id: number) {
@@ -99,6 +110,7 @@ export class PlanController {
 
     return deletePlan;
   }
+
   // 좋아요 기능
   @UseGuards(AuthGuard('jwt'))
   @Post(':id/favorite')
