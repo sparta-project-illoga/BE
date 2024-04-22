@@ -110,8 +110,6 @@ export class PlanService {
 
     const excludePlan = await this.getExludePlan(user.id);
 
-    console.log('제외하는 플랜:', excludePlan);
-
     const plan = await this.planRepository.findOne({
       where: { id },
     });
@@ -247,6 +245,7 @@ export class PlanService {
   }
 
   // 2. 플랜 총 일정 및 에산 추가
+  // 플랜 예산 및 일정 계산 삭제
   async update(
     id: number,
     createPlanDto: CreatePlanDto,
@@ -290,20 +289,11 @@ export class PlanService {
       throw new NotFoundException('스케줄을 입력하지 않았습니다.');
     }
 
-    const lastScehdule = await this.scheduleService.lastScehdule(id);
-
-    const totalmoney = totalschedule.schedule.reduce(
-      (total, schedule) => total + schedule.money,
-      0,
-    );
-
     await this.planRepository.update(
       { id },
       {
         name: createPlanDto.name,
         image: `${imageName}.${ext}`,
-        totaldate: lastScehdule.date,
-        totalmoney,
         type: PlanType.Self,
       },
     );
