@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  HttpStatus,
   UseGuards,
   UploadedFile,
   UseInterceptors,
@@ -39,7 +38,7 @@ export class PlanController {
 
   // 플랜 스케줄 자동 생성
   @UseGuards(AuthGuard('jwt'))
-  @Patch('/passivity/:id')
+  @Patch('/:id/passivity') // 플랜 id 앞으로 땡김
   @UseInterceptors(FileInterceptor('file'))
   async createpassive(
     @Param('id') id: number,
@@ -59,7 +58,7 @@ export class PlanController {
 
   // 플랜 스케쥴 직접 등록
   @UseGuards(AuthGuard('jwt'))
-  @Patch('activeness/:id')
+  @Patch('/:id/activeness') // 플랜 id 앞으로 땡김
   @UseInterceptors(FileInterceptor('file'))
   async update(
     @Param('id') id: number,
@@ -81,6 +80,18 @@ export class PlanController {
   @Get()
   async findAll() {
     return this.planService.findAll();
+  }
+
+  // 플랜 조회 (좋아요 내림차순)
+  @Get('popular')
+  async getPopularPlans() {
+    return this.planService.popularPlans();
+  }
+
+  // 플랜 조회 (빈플랜 제외)
+  @Get('new')
+  async findAllNew() {
+    return this.planService.findAllNew();
   }
 
   // 플랜 상세 조회

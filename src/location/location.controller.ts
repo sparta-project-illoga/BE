@@ -31,25 +31,43 @@ export class LocationController {
     await this.locationService.addTourSpot();
   }
 
-  //여행정보 전체조회
+  // 여행지 정보검색 (전체)
   @Get('tourSpot')
-  async getAllTourSpot() {
-    const tourSpots = await this.locationService.findAllTourSpot();
-    return tourSpots;
+  async getAllTourSpot(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    const pageNumber = page || 1;
+    const pageSize = limit || 20;
+    return this.locationService.findAllTourSpot(pageNumber, pageSize);
   }
 
-  //여행정보 검색기능
   @Get('tourSpot/search')
-  async searchTourSpot(@Query('areaCode') areaCode: string) {
-    return this.locationService.searchTourSpot(areaCode);
+  async searchTourSpot(
+    @Query('areaCode') areaCode: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    const pageNumber = page || 1;
+    const pageSize = limit || 10;
+    return this.locationService.searchTourSpot(areaCode, pageNumber, pageSize);
   }
 
-  //여행정보 검색
-  @Get('search')
-  async search(@Query('keyword') keyword: string) {
-    const tourSpots =
-      await this.locationService.searchTourSpotByKeyword(keyword);
-    return tourSpots;
+  // 여행지 정보검색 (키워드)
+  @Get('tourSpot/search')
+  async search(
+    @Query('keyword') keyword: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    const pageNumber = page || 1;
+    const pageSize = limit || 10;
+
+    return this.locationService.searchTourSpotByKeyword(
+      keyword,
+      pageNumber,
+      pageSize,
+    );
   }
 
   //여행정보 태그 저장

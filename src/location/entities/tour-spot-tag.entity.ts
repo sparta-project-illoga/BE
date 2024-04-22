@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, Index } from 'typeorm';
 import { TourSpot } from './tour-spot.entity';
 import { Tag } from './tag.entity';
 
@@ -10,8 +10,10 @@ export class TourSpotTag {
   id: number;
 
   @ManyToOne(() => TourSpot, (tourSpot) => tourSpot.tourSpotTags)
+  @Index()
   tourSpot: TourSpot;
 
   @ManyToOne(() => Tag, (tag) => tag.tourSpotTags)
+  @Index()
   tag: Tag;
 }
