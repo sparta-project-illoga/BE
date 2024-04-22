@@ -6,9 +6,13 @@ import { ChatContent } from 'src/chat/entities/chat_contents.entity';
 import { ChatRoom } from 'src/chat/entities/chat_rooms.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { OnModuleInit } from '@nestjs/common';
+import { OnModuleInit, UseGuards } from '@nestjs/common';
 import { Member } from 'src/member/entities/member.entity';
+import { AuthGuard } from '@nestjs/passport';
+import { MemberGuard } from 'src/utils/member.guard';
 
+@UseGuards(AuthGuard('jwt'))
+//@UseGuards(MemberGuard)
 @WebSocketGateway(3001, { namespace: 'events', cors: '*' })
 export class EventsGateway implements OnModuleInit {
     constructor(
@@ -23,6 +27,11 @@ export class EventsGateway implements OnModuleInit {
 
     onModuleInit() {
         this.server.on('connection', (socket) => {
+
+            // 클라이언트가 WebSocket으로 연결될 때 실행되는 로직
+            const headers = socket.handshake.headers; // 클라이언트에서 보낸 헤더 정보
+            console.log('Headers:', headers);
+
             console.log(socket.id);
             console.log('Connected');
             this.server.emit('connected');

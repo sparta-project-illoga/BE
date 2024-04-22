@@ -20,7 +20,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('plan')
 export class PlanController {
-  constructor(private readonly planService: PlanService) {}
+  constructor(private readonly planService: PlanService) { }
 
   // 1. 플랜 생성 post
   // 2. 플랜에 총예산/일정 넣기 patch
@@ -110,6 +110,7 @@ export class PlanController {
 
     return deletePlan;
   }
+
   // 좋아요 기능
   @UseGuards(AuthGuard('jwt'))
   @Post(':id/favorite')

@@ -42,7 +42,7 @@ export class PlanService {
     private areaRepository: Repository<Area>,
     @InjectRepository(Favorite)
     private favoriteRepository: Repository<Favorite>,
-  ) {}
+  ) { }
 
   // 1. 플랜 생성 (단 총 예산과 일정은 추가가 안됨)
   async create(user: User) {

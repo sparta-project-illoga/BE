@@ -20,7 +20,7 @@ export class ChatController {
 
   //채팅방 만들기
   //memberguard : leader만 가능
-  @Members(MemberType.Leader)
+  // @Members(MemberType.Leader)
   @Post('plan/:planId')
   @ApiOperation({ summary: '채팅방 생성 API', description: '플랜 멤버들을 포함한 채팅방을 생성한다.' })
   async createRoom(@Param('planId') planId: number, @Body() createChatDto: CreateChatDto) {
@@ -47,15 +47,31 @@ export class ChatController {
   }
 
   //채팅 내용 조회
+  //채팅방 정보도 같이 조회
   @Get('room/:roomId/content')
   @ApiOperation({ summary: '채팅 내용 조회 API', description: '채팅방에서 입력한 채팅들을 조회한다.' })
   async findAll(@Param('roomId') roomId: number) {
-    const text = await this.chatService.findAll(roomId);
+    const chat = await this.chatService.findAll(roomId);
 
     return {
       statusCode: HttpStatus.OK,
       message: '채팅방 내용 조회에 성공했습니다.',
-      text,
+      chat,
     }
   }
+
+  //유저가 속한 플랜과 채팅방 조회
+  @Get('planNchat')
+  @ApiOperation({ summary: '플랜과 채팅방 조회', description: 'userId를 주면 해당 유저가 속한 플랜과 채팅방을 조회한다.' })
+  async getPlanNChat(@UserInfo() user: User) {
+    const myPlanChats = await this.chatService.getPlanNChat(user.id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: '내 플랜과 채팅방 조회에 성공했습니다.',
+      myPlanChats,
+    }
+  }
+
+
 }
