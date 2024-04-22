@@ -422,11 +422,29 @@ export class PlanService {
   // 플랜 조회 (좋아요 내림차순)
   async popularPlans() {
     const plans = await this.planRepository
-      .createQueryBuilder('plan')
-      .where('plan.favoriteCount > 0')
-      .orderBy('plan.favoriteCount', 'DESC')
-      .getMany();
-
+    .createQueryBuilder('plan')
+    .where('plan.totaldate IS NOT NULL AND plan.totalmoney IS NOT NULL')
+    .where('plan.favoriteCount > 0')
+    .orderBy('plan.favoriteCount', 'DESC')
+    .getMany();
+    
+    if (!plans || plans.length === 0) {
+      throw new NotFoundException('플랜이 없습니다');
+    }
+    
     return plans;
+  }
+  // 좋아요 상태조회
+    async getFavoriteStatus(user: User, planId: number) {
+      const plan = await this.planRepository.findOneBy({ id: planId });
+      if (!plan) {
+        throw new BadRequestException(`${planId}번 플랜을 찾을 수 없습니다.`);
+      }
+  
+      const existingFavorite = await this.favoriteRepository.findOne({
+        where: { user: { id: user.id }, plan: { id: planId } },
+      });
+  
+      return { isFavorite: !!existingFavorite };
   }
 }
