@@ -245,6 +245,7 @@ export class PlanService {
   }
 
   // 2. 플랜 총 일정 및 에산 추가
+  // 플랜 예산 및 일정 계산 삭제
   async update(
     id: number,
     createPlanDto: CreatePlanDto,
