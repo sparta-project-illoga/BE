@@ -40,22 +40,8 @@ export class MemberService {
 
     this.eventGateway.addMember(member);
 
-    return member;
+    return { ...member, "nickname": user.nickname };
   }
-
-  // async findAll(planId: number) {
-  //   const members = await this.memberRepository.find({
-  //     where: { planId },
-  //     relations: ['user'],
-  //     select: {
-  //       user: {
-  //         nickname: true
-  //       }
-  //     }
-  //   });
-
-  //   return members;
-  // }
 
   async findAll(planId: number) {
     const members = await this.memberRepository.find({
@@ -103,6 +89,10 @@ export class MemberService {
     const member = await this.memberRepository.findOne({
       where: { memberId },
     });
+
+    if (member.type === 'Leader') {
+      throw new BadRequestException("플랜의 리더는 삭제할 수 없습니다.");
+    }
 
     const user = await this.userRepository.findOneBy({ id: member.userId });
 
