@@ -123,4 +123,11 @@ export class PlanController {
   async getFavoriteCount(@Param('id') id: number) {
     return this.planService.getFavoriteCount(id);
   }
+
+    // 좋아요 상태 조회
+    @UseGuards(AuthGuard('jwt'))
+    @Get(':id/favorite/status')
+    async getFavoriteStatus(@UserInfo() user: User, @Param('id') id: number) {
+      return this.planService.getFavoriteStatus(user, id);
+    }
 }
