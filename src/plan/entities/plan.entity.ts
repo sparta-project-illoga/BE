@@ -25,7 +25,7 @@ export class Plan {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @Column()
+  @Column({ default: '플랜 이름없음' })
   name: string;
 
   @Column({ type: 'int', nullable: false })
@@ -42,6 +42,9 @@ export class Plan {
 
   @Column({ type: 'enum', enum: PlanType, default: PlanType.NonCreate })
   type: PlanType;
+
+  @Column({ default: 0 })
+  favoriteCount: number;
 
   @CreateDateColumn()
   created_at: Date;
@@ -67,7 +70,6 @@ export class Plan {
   category: Category[];
 
   @ManyToOne(() => User, (user) => user.plan, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userId' })
   user: User;
 
   @OneToMany(() => Favorite, (favorite) => favorite.plan)
