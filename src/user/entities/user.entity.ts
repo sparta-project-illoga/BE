@@ -39,7 +39,7 @@ export class User {
   @Column({ type: 'varchar', unique: false, nullable: false })
   name: string;
 
-  @Column({ type: 'varchar', unique: false, nullable: false })
+  @Column({ type: 'varchar', unique: true, nullable: false })
   nickname: string;
 
   @Column({ type: 'varchar', unique: false, nullable: false })
