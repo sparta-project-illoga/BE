@@ -12,35 +12,31 @@ export class MemberService {
     @InjectRepository(Member) private readonly memberRepository: Repository<Member>,
     @InjectRepository(Plan) private readonly planRepository: Repository<Plan>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-
-    private eventGateway: EventsGateway,
   ) { }
 
-  async create(planId: number, userId: number) {
+  async create(planId: number, nickname: string) {
 
     const plan = await this.planRepository.findOneBy({ id: planId });
 
     if (!plan) {
       throw new BadRequestException('해당 플랜은 존재하지 않습니다.');
     }
-    ;
-    const check = await this.memberRepository.findOne({ where: { planId, userId } });
 
-    if (check) {
-      throw new BadRequestException('이미 해당 플랜에 초대된 멤버입니다.');
-    }
-
-    const user = await this.userRepository.findOneBy({ id: userId });
+    const user = await this.userRepository.findOneBy({ nickname });
 
     if (!user) {
       throw new BadRequestException('해당 유저는 존재하지 않습니다.');
     }
 
-    const member = await this.memberRepository.save({ planId, userId });
+    const check = await this.memberRepository.findOne({ where: { planId, userId: user.id } });
 
-    this.eventGateway.addMember(member);
+    if (check) {
+      throw new BadRequestException('이미 해당 플랜에 초대된 멤버입니다.');
+    }
 
-    return { ...member, "nickname": user.nickname };
+    const member = await this.memberRepository.save({ planId, userId: user.id });
+
+    return { ...member, "nickname": nickname };
   }
 
   async findAll(planId: number) {

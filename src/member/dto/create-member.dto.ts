@@ -1,7 +1,7 @@
-import { IsNotEmpty, IsNumber } from "class-validator";
+import { IsNotEmpty, IsString } from "class-validator";
 
 export class CreateMemberDto {
-    @IsNumber()
-    @IsNotEmpty({ message: '해당 플랜에 초대할 멤버(userId값)를 입력해주세요.' })
-    userId: number;
+    @IsString()
+    @IsNotEmpty({ message: '해당 플랜에 초대할 멤버의 닉네임을 입력해주세요.' })
+    nickname: string;
 }

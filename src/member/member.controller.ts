@@ -21,7 +21,7 @@ export class MemberController {
   @Post('plan/:planId')
   @ApiOperation({ summary: '멤버 추가 API', description: '플랜에 멤버를 추가한다.' })
   async create(@Param('planId') planId: number, @Body() createMemberDto: CreateMemberDto) {
-    const member = await this.memberService.create(planId, createMemberDto.userId);
+    const member = await this.memberService.create(planId, createMemberDto.nickname);
 
     return {
       statusCode: HttpStatus.OK,
