@@ -15,8 +15,6 @@ export class ChatService {
     @InjectRepository(ChatContent) private readonly chatcontentRepository: Repository<ChatContent>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Plan) private readonly planRepository: Repository<Plan>,
-
-    private eventGateway: EventsGateway
   ) { }
 
   //채팅방 만들기
@@ -35,7 +33,6 @@ export class ChatService {
     await this.chatroomRepository.save({ planId, name: roomName });
     const room = await this.chatroomRepository.findOne({ where: { planId } });
 
-    this.eventGateway.createRoom(room);
     return room;
   }
 
@@ -50,8 +47,6 @@ export class ChatService {
 
     const message = await this.chatcontentRepository.save({ roomId, userId, chat })
 
-    //message return 전에 gateway로 보내기
-    this.eventGateway.sendMessage(message);
     return { name: user.nickname, ...message };
   }
 

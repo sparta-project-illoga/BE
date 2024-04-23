@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module, forwardRef } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { ChatController } from './chat.controller';
 import { EventsModule } from 'src/events/events.module';
@@ -13,9 +13,10 @@ import { MemberModule } from 'src/member/member.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([ChatRoom, ChatContent, User, Plan]),
-    PassportModule, EventsModule, MemberModule
+    PassportModule, MemberModule
   ],
   controllers: [ChatController],
   providers: [ChatService],
+  exports: [ChatService]
 })
 export class ChatModule { }
