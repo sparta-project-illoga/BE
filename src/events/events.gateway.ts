@@ -15,17 +15,14 @@ import { ChatService } from 'src/chat/chat.service';
 import { User } from 'src/user/entities/user.entity';
 import * as dotenv from 'dotenv';
 
-// 환경 변수 로드
 dotenv.config();
 
-// 소켓 타입 확장
 interface CustomSocket extends Socket {
     authorization?: string;
     userId?: number;
     roomId?: number;
 }
 
-// @UseGuards(MemberGuard)
 @WebSocketGateway({ namespace: 'events', cors: { origin: 'http://localhost:3001', credentials: true } })
 export class EventsGateway implements OnModuleInit {
     constructor(
@@ -42,6 +39,9 @@ export class EventsGateway implements OnModuleInit {
 
     @WebSocketServer()
     server: Server<CustomSocket, ServerToClientEvents>;
+
+    // 각 룸의 멤버 리스트를 저장할 객체
+    private roomMembers: Record<number, Set<number>> = {};
 
     onModuleInit() {
         this.server.on('connection', (socket: CustomSocket) => {
@@ -66,9 +66,8 @@ export class EventsGateway implements OnModuleInit {
 
 
                 console.log("decoded : ", decoded);
+                //토큰에서 유저id 추출(sub로 저장)
                 const userId = parseInt(decoded['sub'], 10);
-                // 토큰에서 유저 정보 추출
-                // const userId = decoded['sub']; // 예: 토큰에 userId가 있음
                 console.log('User ID:', userId);
 
                 if (isNaN(userId)) {
@@ -91,8 +90,6 @@ export class EventsGateway implements OnModuleInit {
         });
     }
 
-    //@UseGuards(AuthGuard('jwt'))
-    //@UseGuards(MemberGuard)
     @SubscribeMessage('message')
     async handleMessage(client: CustomSocket, payload: { roomId: number, chat: string }) {
 
@@ -119,9 +116,6 @@ export class EventsGateway implements OnModuleInit {
     async handleJoinRoom(client: CustomSocket, payload: { roomId: number }) {
         const roomId = payload.roomId;
 
-        console.log("joinRoom payload : ", payload);
-        console.log("joinRoom roomId : ", roomId);
-
         const plan = await this.chatRoomRepository.findOneBy({ roomId });
 
         console.log("joinRoom 해당 플랜 찾음 : ", plan);
@@ -136,7 +130,18 @@ export class EventsGateway implements OnModuleInit {
 
         if (member) {
             client.join(`room-${roomId}`); // 클라이언트를 해당 방에 추가
-            client.emit('joinRoomSuccess');
+
+            // 룸 멤버 객체에 룸 ID에 대한 Set이 없으면 생성
+            if (!this.roomMembers[roomId]) {
+                this.roomMembers[roomId] = new Set();
+            }
+
+            // 멤버 리스트에 현재 userId 추가
+            this.roomMembers[roomId].add(client.userId);
+
+            // 멤버 리스트를 배열로 변환하여 `joinRoomSuccess` 이벤트로 전달
+            client.emit('joinRoomSuccess', Array.from(this.roomMembers[roomId]));
+
             console.log(`UserId : ${client.userId} ,roomId : ${roomId} 들어옴`);
             this.server.to(`room-${roomId}`).emit('memberJoined', { userId: client.userId });
         } else {
@@ -145,18 +150,15 @@ export class EventsGateway implements OnModuleInit {
         }
     }
 
-    createRoom(room: ChatRoom) {
-        console.log(`${room.name} 채팅방이 생성되었습니다.`)
-        this.server.emit('newRoom', room);
+    //타이핑 중인 사용자 정보 알려줌
+    @SubscribeMessage('typing')
+    async typing(client: CustomSocket, payload: { roomId: number, isTyping: boolean }) {
+        console.log("client userId:", client.userId);
+
+        const user = await this.userRepository.findOneBy({ id: client.userId });
+        // 특정 방에만 메시지 전송
+        if (user) {
+            this.server.to(`room-${payload.roomId}`).emit('typing', { "nickname": user.nickname, "isTyping": payload.isTyping });
+        }
     }
-
-    sendMessage(message: ChatContent) {
-        this.server.emit('newMessage', message);
-    }
-
-    addMember(member: Member) {
-        this.server.emit('addMember', member);
-
-    }
-
 }

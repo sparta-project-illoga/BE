@@ -10,4 +10,5 @@ export interface ServerToClientEvents {
     connected: () => void;
     responseMessage: (payload: { name: string; chat: string }) => void;
     memberJoined: (payload: { userId: number }) => void;
+    typing: (payload: { nickname: string, isTyping: boolean }) => void;
 }
