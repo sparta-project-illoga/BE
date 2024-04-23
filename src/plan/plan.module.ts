@@ -53,4 +53,4 @@ import { PlanComment } from 'src/plan-comment/entities/plan-comment.entity';
   ],
   exports: [PlanService],
 })
-export class PlanModule {}
+export class PlanModule { }
