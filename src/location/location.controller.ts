@@ -12,8 +12,8 @@ export class LocationController {
   @UseGuards(AuthGuard('jwt'))
   @Put()
   async updateLocation(
-    @Body() locationData: { latitude: 37.1234; longitude: 122.5678 },
-    // @Body() locationData: { latitude: number; longitude: number },
+    // @Body() locationData: { latitude: 37.1234; longitude: 122.5678 },
+    @Body() locationData: { latitude: number; longitude: number },
     @UserInfo() user: User,
   ) {
     return this.locationService.updateLocation(user, locationData);
