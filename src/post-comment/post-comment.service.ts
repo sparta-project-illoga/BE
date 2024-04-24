@@ -24,6 +24,7 @@ export class PostCommentService {
   async createComment(
     createPostCommentDto: CreatePostCommentDto,
     userId: number,
+    nickname: string,
     postId: number,
   ) {
     const post = await this.postService.findOnePostByPostId(postId);
@@ -31,6 +32,7 @@ export class PostCommentService {
     const comment = await this.postCommentRepository.save({
       content: createPostCommentDto.content,
       userId,
+      nickname,
       postId,
     });
     return comment;
