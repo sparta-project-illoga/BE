@@ -37,7 +37,7 @@ export class MemberGuard extends JwtAuthGuard implements CanActivate {
 
         console.log('member-guard: userId, planId', userId, planId);
 
-        console.log("memberService : ", this.memberService);
+        //console.log("memberService : ", this.memberService);
 
         const member = await this.memberService.findMember(userId, planId);
 

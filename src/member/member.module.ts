@@ -1,4 +1,4 @@
-import { Global, Module } from '@nestjs/common';
+import { Global, Module, forwardRef } from '@nestjs/common';
 import { MemberService } from './member.service';
 import { MemberController } from './member.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -12,7 +12,7 @@ import { EventsModule } from 'src/events/events.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Member, Plan, User]),
-    PassportModule, EventsModule
+    PassportModule,
   ],
   controllers: [MemberController],
   providers: [MemberService],

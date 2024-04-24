@@ -8,5 +8,7 @@ export interface ServerToClientEvents {
     addMember: (payload: Member) => void;
     //단순히 서버와 클라이언트 연결 상태 나타내려는 것이므로 매개 변수 필요 없음
     connected: () => void;
-    responseMessage: (message: string) => string;
+    responseMessage: (payload: { name: string; chat: string }) => void;
+    memberJoined: (payload: { userId: number }) => void;
+    typing: (payload: { nickname: string, isTyping: boolean }) => void;
 }
