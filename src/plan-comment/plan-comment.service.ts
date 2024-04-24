@@ -24,6 +24,7 @@ export class PlanCommentService {
   async createComment(
     createPlanCommentDto: CreatePlanCommentDto,
     userId: number,
+    nickname: string,
     planId: number,
   ) {
     const plan = await this.planService.findOne(planId);
@@ -31,6 +32,7 @@ export class PlanCommentService {
     const comment = await this.planCommentRepository.save({
       content: createPlanCommentDto.content,
       userId,
+      nickname,
       planId,
     });
     return comment;
