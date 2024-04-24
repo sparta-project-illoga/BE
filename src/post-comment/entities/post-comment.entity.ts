@@ -21,6 +21,7 @@ export class PostComment {
   userId: number;
 
   @Column({ type: 'varchar', nullable: false})
+  nickname: string;
 
   @Column({ type: 'int', nullable: false })
   postId: number;
