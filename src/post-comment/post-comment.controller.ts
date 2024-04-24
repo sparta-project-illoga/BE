@@ -30,6 +30,7 @@ export class PostCommentController {
     return this.postCommentService.createComment(
       createPostCommentDto,
       user.id,
+      user.nickname,
       postId,
     );
   }

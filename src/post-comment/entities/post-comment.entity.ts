@@ -20,6 +20,8 @@ export class PostComment {
   @Column({ type: 'int', nullable: false })
   userId: number;
 
+  @Column({ type: 'varchar', nullable: false})
+
   @Column({ type: 'int', nullable: false })
   postId: number;
 
