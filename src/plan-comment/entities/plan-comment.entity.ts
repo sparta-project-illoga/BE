@@ -21,7 +21,7 @@ export class PlanComment {
   userId: number;
 
   @Column({ type: 'varchar', nullable: false})
-  nickname: string;
+  nickname:string;
 
   @Column({ type: 'int', nullable: false, unsigned: true })
   planId: number;
