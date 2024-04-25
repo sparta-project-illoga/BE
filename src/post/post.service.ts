@@ -42,7 +42,7 @@ export class PostService {
     newPost.content = createPostDto.content;
     newPost.image = createPostDto.image; //TODO - 이미지 추가 기능해야함! S3
     newPost.userId = user.id;
-    newPost.nickname = user.nickname;
+    newPost.user_nickname = user.nickname;
     newPost.region = users.location.region_1depth_name;
     newPost.areaCode = area.areaCode;
     const post = await this.postRepository.save(newPost);
