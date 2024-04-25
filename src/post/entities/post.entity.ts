@@ -23,7 +23,7 @@ export class Post {
   userId: number;
 
   @Column({ type: 'varchar', nullable: false})
-  nickname: string;
+  user_nickname: string;
 
   @Column({ type: 'varchar', nullable: false })
   title: string;
