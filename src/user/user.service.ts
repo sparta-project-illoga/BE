@@ -79,7 +79,7 @@ export class UserService {
     // 사용자가 일치하면 jwt 토큰 페이로드 구성
     const payload = { email: user.email, sub: user.id };
     return {
-      access_token: this.jwtService.sign(payload, { expiresIn: '300s' }),
+      access_token: this.jwtService.sign(payload, { expiresIn: '7d' }),
       refresh_token: this.jwtService.sign(payload, { expiresIn: '7d' }),
     };
   }
