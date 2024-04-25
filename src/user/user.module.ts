@@ -10,10 +10,11 @@ import { AwsModule } from 'src/aws/aws.module';
 import { UtilsModule } from 'src/utils/utils.module';
 import { MailerModule } from 'src/mailer/mailer.module';
 import { RedisModule } from 'src/redis/redis.module';
+import { Location } from 'src/location/entities/location.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Location]),
     JwtModule.registerAsync({
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('JWT_ACCESS_TOKEN_SECRET'),
@@ -29,4 +30,4 @@ import { RedisModule } from 'src/redis/redis.module';
   providers: [UserService],
   exports: [UserService],
 })
-export class UserModule {}
+export class UserModule { }
