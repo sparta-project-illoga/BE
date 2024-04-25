@@ -20,6 +20,9 @@ export class PlanComment {
   @Column({ type: 'int', nullable: false })
   userId: number;
 
+  @Column({ type: 'varchar', nullable: false})
+  nickname:string;
+
   @Column({ type: 'int', nullable: false, unsigned: true })
   planId: number;
 

@@ -30,6 +30,7 @@ export class PlanCommentController {
     return this.planCommentService.createComment(
       createPlanCommentDto,
       user.id,
+      user.nickname,
       planId,
     );
   }
