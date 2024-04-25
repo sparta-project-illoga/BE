@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as cors from 'cors';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -24,15 +25,12 @@ async function bootstrap() {
   );
 
   app.use(cookieParser());
+  app.enableCors({ origin: true, credentials: true });
+  // app.enableCors({
+  //   origin: 'https://illoga.store',
+  //   credentials: true,
+  // });
 
-  app.enableCors({
-    origin: "http://localhost:3001",
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-    credentials: true,
-  });
-
-  await app.listen(3000);
+  await app.listen(8000);
 }
 bootstrap();

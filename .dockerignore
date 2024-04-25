@@ -3,7 +3,7 @@ node_modules
 # NestJS 빌드 폴더 제외
 dist
 # 환경 설정 파일 제외
-#.env
+.env
 # Git 관련 파일/디렉토리 제외
 .git
 .gitignore
