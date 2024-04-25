@@ -3,7 +3,12 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UserService } from 'src/user/user.service';
 import { Request as RequestType } from 'express';
 
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 
@@ -21,9 +26,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   private static extractJWT(req: RequestType): string | null {
-    const { Authorization } = req.cookies;
-    if (Authorization) {
-      const [tokenType, token] = Authorization.split(' ');
+    const { authorization } = req.headers;
+    if (authorization) {
+      const [tokenType, token] = authorization.split(' ');
       if (tokenType !== 'Bearer')
         throw new BadRequestException('토큰 타입이 일치하지 않습니다.');
       if (!token) {
