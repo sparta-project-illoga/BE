@@ -9,7 +9,7 @@ import { UserInfo } from 'src/utils/userInfo.decorator';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateUserDto } from './dto/user.update.dto';
-import { FindPwDto} from './dto/findpw.dto';
+import { FindPwDto } from './dto/findpw.dto';
 import { ChangePwDto } from './dto/changepw.dto';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 
@@ -17,11 +17,11 @@ import { ApiBearerAuth, ApiBody, ApiConsumes, ApiCreatedResponse, ApiOperation, 
 @ApiTags('유저 API')
 @ApiSecurity('cookieAuth', ['jwt'])
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   //회원가입
   @Post('register')
-  @ApiOperation({summary : '회원가입', description: '사용자 정보를 추가합니다.' })
+  @ApiOperation({ summary: '회원가입', description: '사용자 정보를 추가합니다.' })
   @ApiQuery({ name: 'type', required: false, description: '`sendmail`: 이메일 인증번호 전송, `verifycode`: 인증번호 검증. 이 파라미터가 없는 경우 일반 회원가입을 수행합니다.' })
   @ApiCreatedResponse({ description: '유저를 생성한다', type: RegisterDto })
   @ApiResponse({ status: 201, description: '회원가입에 성공하였습니다' })
@@ -30,12 +30,12 @@ export class UserController {
     @Query('type') type: string,
     @Body() body: any) {
     // 이메일 인증번호 전송 로직 실행
-    if (type==='sendmail') {
+    if (type === 'sendmail') {
       const email = body.email
       return await this.userService.sendVerification(email)
     }
     // 인증번호 검증 로직 실행
-    if (type==='verifycode') {
+    if (type === 'verifycode') {
       const { email, code } = body;
       return await this.userService.verifyUser(email, code);
     }
@@ -46,7 +46,7 @@ export class UserController {
 
   //로그인
   @Post('login')
-  @ApiOperation({summary : '로그인', description: '아이디와 비밀번호를 통해 로그인을 진행' })
+  @ApiOperation({ summary: '로그인', description: '아이디와 비밀번호를 통해 로그인을 진행' })
   @ApiCreatedResponse({
     description: '로그인 정보',
     schema: {
@@ -68,7 +68,7 @@ export class UserController {
   // 프로필
   @UseGuards(AuthGuard('jwt'))
   @Get('info')
-  @ApiOperation({summary : '프로필', description: '회원정보를 확인' })
+  @ApiOperation({ summary: '프로필', description: '회원정보를 확인' })
   @ApiCreatedResponse({
     description: '회원 정보',
     schema: {
@@ -85,7 +85,8 @@ export class UserController {
       },
     },
   })
-  getInfo(@UserInfo() user: User) {
+  async getInfo(@UserInfo() user: User) {
+    const region = await this.userService.getRegion(user.id);
     return {
       id: user.id,
       email: user.email,
@@ -94,7 +95,8 @@ export class UserController {
       phone: user.phone,
       role: user.role,
       image_url: user.image_url,
-      created_at: user.created_at,     
+      created_at: user.created_at,
+      region: region
     }
   }
 
@@ -102,7 +104,7 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('file'))
   @Patch('modify')
-  @ApiOperation({summary : '회원정보 수정', description: '회원정보를 수정' })
+  @ApiOperation({ summary: '회원정보 수정', description: '회원정보를 수정' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -120,15 +122,15 @@ export class UserController {
     },
   })
   async update(
-    @UserInfo() user: User, 
+    @UserInfo() user: User,
     @Body() updateUserDto: UpdateUserDto,
     @UploadedFile() file: Express.Multer.File,
-    ) {
+  ) {
     const updatedProfile = await this.userService.update(
       user.id,
       updateUserDto,
       file
-      );
+    );
     return updatedProfile
   }
 
@@ -151,11 +153,11 @@ export class UserController {
   @ApiResponse({ status: 200, description: '비밀번호 변경에 성공하였습니다.' })
   @ApiResponse({ status: 400, description: '잘못된 요청' })
   async changePw(
-    @UserInfo() user: User, 
+    @UserInfo() user: User,
     @Body() changePwDto: ChangePwDto
   ) {
     await this.userService.changePw(user.id, changePwDto)
-    return {message: '비밀번호 변경에 성공하였습니다.'}
+    return { message: '비밀번호 변경에 성공하였습니다.' }
   }
 
   // 회원탈퇴
@@ -166,7 +168,7 @@ export class UserController {
   @ApiResponse({ status: 400, description: '잘못된 요청' })
   @ApiParam({ name: 'id', required: true, description: '탈퇴할 유저의 ID', type: Number })
   @HttpCode(204)
-  remove(@UserInfo() user: User, @Param('id') id:number) {
+  remove(@UserInfo() user: User, @Param('id') id: number) {
     return this.userService.remove(user.id, id);
   }
 }
