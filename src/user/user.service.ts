@@ -17,6 +17,7 @@ import { MailerService } from 'src/mailer/mailer.service';
 import { AwsService } from 'src/aws/aws.service';
 import { RedisService } from 'src/redis/redis.service';
 import { Location } from '../location/entities/location.entity';
+import { join } from 'path';
 
 
 @Injectable()
@@ -110,7 +111,7 @@ export class UserService {
 
     //S3에 이미지 업로드, url return
     const imageName = this.utilsService.getUUID();
-    const ext = file ? file.originalname.split('.').pop() : 'png';
+    const ext = join(file.originalname).split('.').pop()
 
     if (ext) {
       imageUrl = await this.awsService.imageUploadToS3(
