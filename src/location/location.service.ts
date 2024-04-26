@@ -191,17 +191,23 @@ export class LocationService {
     };
   }
 
-  // // 여행지 정보검색 (지역코드)
+  // 여행지 정보검색 (지역코드)
   async searchTourSpot(areaCode: string, page: number, limit: number) {
     try {
-      const [tourSpots, total] = await this.tourSpotRepository.findAndCount({
+      const [results, total] = await this.tourSpotRepository.findAndCount({
         where: { areaCode: areaCode },
+        relations: ['tourSpotTags', 'tourSpotTags.tag'],
         skip: (page - 1) * limit,
         take: limit,
       });
 
       return {
-        data: tourSpots,
+        data: results.map((tourSpot) => ({
+          ...tourSpot,
+          tourSpotTags: tourSpot.tourSpotTags.map(
+            (tourSpotTag) => tourSpotTag.tag.name,
+          ),
+        })),
         count: total,
         page: page,
         limit: limit,
@@ -212,16 +218,12 @@ export class LocationService {
   }
 
   // 여행지 정보검색 (키워드)
-  async searchTourSpotByKeyword(
-    keyword: string,
-    page: number,
-    limit: number,
-  ): Promise<{ data: TourSpot[]; total: number; page: number; limit: number }> {
+  async searchTourSpotByKeyword(keyword: string, page: number, limit: number) {
     if (!keyword) {
       return { data: [], total: 0, page, limit };
     }
 
-    const [data, total] = await this.tourSpotRepository
+    const [results, total] = await this.tourSpotRepository
       .createQueryBuilder('tourSpot')
       .innerJoinAndSelect('tourSpot.tourSpotTags', 'tourSpotTag')
       .innerJoinAndSelect('tourSpotTag.tag', 'tag')
@@ -230,7 +232,18 @@ export class LocationService {
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
-    return { data, total, page, limit };
+
+    return {
+      data: results.map((tourSpot) => ({
+        ...tourSpot,
+        tourSpotTags: tourSpot.tourSpotTags.map(
+          (tourSpotTag) => tourSpotTag.tag.name,
+        ),
+      })),
+      total,
+      page,
+      limit,
+    };
   }
 
   // 여행지에 태그 스크롤링해서 넣기
