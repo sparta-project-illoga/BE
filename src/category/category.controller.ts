@@ -5,6 +5,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Category } from './entities/category.entity';
+import { MemberGuard } from 'src/utils/member.guard';
 
 @UseGuards(AuthGuard('jwt'))
 @ApiTags('카테고리 API')
@@ -13,6 +14,7 @@ export class CategoryController {
   constructor(private readonly categoryService: CategoryService) { }
 
   //카테고리 생성
+  @UseGuards(MemberGuard)
   @Post('plan/:planId')
   @ApiOperation({ summary: '카테고리 생성 API', description: '카테고리를 생성한다.' })
   @ApiResponse({ description: '카테고리를 생성한다.', type: Category })
@@ -42,6 +44,7 @@ export class CategoryController {
   }
 
   //카테고리 수정
+  @UseGuards(MemberGuard)
   @Patch(':categoryId')
   @ApiOperation({ summary: '카테고리 수정 API', description: '카테고리를 수정한다.' })
   async update(@Param('categoryId') categoryId: number, @Body() updateCategoryDto: UpdateCategoryDto) {
@@ -55,6 +58,7 @@ export class CategoryController {
   }
 
   //카테고리 삭제
+  @UseGuards(MemberGuard)
   @Delete(':categoryId')
   @ApiOperation({ summary: '카테고리 삭제 API', description: '카테고리를 삭제한다.' })
   async remove(@Param('categoryId') categoryId: number) {
