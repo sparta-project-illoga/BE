@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThan, Repository } from 'typeorm';
+import { Brackets, MoreThan, Repository } from 'typeorm';
 import { Location } from './entities/location.entity';
 import { User } from 'src/user/entities/user.entity';
 import axios from 'axios';
@@ -212,36 +212,25 @@ export class LocationService {
   }
 
   // 여행지 정보검색 (키워드)
-  async searchTourSpotByKeyword(keyword: string, page: number, limit: number) {
-    try {
-      const [tourSpots, total] = await this.tourSpotRepository
-        .createQueryBuilder('tourSpot')
-        .leftJoinAndSelect('tourSpot.tourSpotTags', 'tourSpotTags')
-        .leftJoinAndSelect('tourSpotTags.tag', 'tag')
-        .addSelect(['tourSpot.title', 'tag.name'])
-        .where('tourSpot.title LIKE :keyword', { keyword: `%${keyword}%` })
-        .orWhere('tag.name LIKE :keyword', { keyword: `%${keyword}%` })
-        .skip((page - 1) * limit)
-        .take(limit)
-        .getManyAndCount();
-
-      const tourSpotsWithTags = tourSpots.map((tourSpot) => {
-        const { tourSpotTags, ...tourSpotWithoutTags } = tourSpot;
-        return {
-          ...tourSpotWithoutTags,
-          tagNames: tourSpotTags.map((tourSpotTag) => tourSpotTag.tag.name),
-        };
-      });
-
-      return {
-        data: tourSpotsWithTags,
-        count: total,
-        page: page,
-        limit: limit,
-      };
-    } catch (error) {
-      throw new Error('여행지를 찾을수 없습니다.');
+  async searchTourSpotByKeyword(
+    keyword: string,
+    page: number,
+    limit: number,
+  ): Promise<{ data: TourSpot[]; total: number; page: number; limit: number }> {
+    if (!keyword) {
+      return { data: [], total: 0, page, limit };
     }
+
+    const [data, total] = await this.tourSpotRepository
+      .createQueryBuilder('tourSpot')
+      .innerJoinAndSelect('tourSpot.tourSpotTags', 'tourSpotTag')
+      .innerJoinAndSelect('tourSpotTag.tag', 'tag')
+      .where('tourSpot.title LIKE :keyword', { keyword: `%${keyword}%` })
+      .orWhere('tag.name LIKE :keyword', { keyword: `%${keyword}%` })
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+    return { data, total, page, limit };
   }
 
   // 여행지에 태그 스크롤링해서 넣기
