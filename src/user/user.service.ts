@@ -110,7 +110,7 @@ export class UserService {
 
     //S3에 이미지 업로드, url return
     const imageName = this.utilsService.getUUID();
-    const ext = file ? file.originalname.split('.').pop() : null;
+    const ext = file ? file.originalname.split('.').pop() : 'png';
 
     if (ext) {
       imageUrl = await this.awsService.imageUploadToS3(
@@ -224,7 +224,7 @@ export class UserService {
   async findById(id: number) {
     return await this.userRepository.findOneBy({ id });
   }
-
+  
   //유저 지역인증 정보
   async getRegion(userId: number) {
     const region = await this.locationRepository.findOneBy({ userId });
