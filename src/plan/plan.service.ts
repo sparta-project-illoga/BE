@@ -134,7 +134,7 @@ export class PlanService {
     }
 
     const imageName = this.utilsService.getUUID();
-    const ext = file ? file.originalname.split('.').pop() : null;
+    const ext = file ? file.originalname.split('.').pop() : 'png';
 
     if (ext) {
       imageUrl = await this.awsService.imageUploadToS3(
@@ -273,7 +273,7 @@ export class PlanService {
     }
 
     const imageName = this.utilsService.getUUID();
-    const ext = file ? file.originalname.split('.').pop() : null;
+    const ext = file ? file.originalname.split('.').pop() : 'png';
 
     if (ext) {
       imageUrl = await this.awsService.imageUploadToS3(
