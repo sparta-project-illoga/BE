@@ -54,7 +54,7 @@ export class LocationController {
   }
 
   // 여행지 정보검색 (키워드)
-  @Get('tourSpot/search')
+  @Get('tourSpot/keyword')
   async search(
     @Query('keyword') keyword: string,
     @Query('page') page?: number,
