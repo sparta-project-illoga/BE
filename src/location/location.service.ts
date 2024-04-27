@@ -225,8 +225,8 @@ export class LocationService {
 
     const [results, total] = await this.tourSpotRepository
       .createQueryBuilder('tourSpot')
-      .innerJoinAndSelect('tourSpot.tourSpotTags', 'tourSpotTag')
-      .innerJoinAndSelect('tourSpotTag.tag', 'tag')
+      .leftJoinAndSelect('tourSpot.tourSpotTags', 'tourSpotTag')
+      .leftJoinAndSelect('tourSpotTag.tag', 'tag')
       .where('tourSpot.title LIKE :keyword', { keyword: `%${keyword}%` })
       .orWhere('tag.name LIKE :keyword', { keyword: `%${keyword}%` })
       .skip((page - 1) * limit)
