@@ -98,7 +98,6 @@ export class PlanService {
     id: number,
     pickPlanDto: PickPlanDto,
     user: User,
-    file?: Express.Multer.File,
   ) {
     // 관련 스케쥴 삭제
     await this.scheduleService.removeByplanId(id);
@@ -125,25 +124,6 @@ export class PlanService {
 
     // placecode는 areacode를 검색하기 위해 사용한다
     const { name, category, placecode, money, date } = pickPlanDto;
-
-    let imageUrl = plan.image;
-
-    if (file) {
-      if (plan.image !== null) {
-        await this.awsService.deleteUploadToS3(plan.image);
-      }
-    }
-
-    const imageName = this.utilsService.getUUID();
-    const ext = join(file.originalname).split('.').pop()
-
-    if (ext) {
-      imageUrl = await this.awsService.imageUploadToS3(
-        `${imageName}.${ext}`,
-        file,
-        ext,
-      );
-    }
 
     const SpotAreacode = await this.placeRepository.findOne({
       where: { areacode: placecode },
@@ -233,7 +213,6 @@ export class PlanService {
       { id },
       {
         name,
-        image: `${imageName}.${ext}`,
         totaldate: lastScehdule.date,
         totalmoney,
         type: PlanType.Auto,
