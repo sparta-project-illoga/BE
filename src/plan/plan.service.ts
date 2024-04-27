@@ -21,6 +21,7 @@ import { PlanType } from './types/plan.type';
 import { Category } from 'src/category/entities/category.entity';
 import { Area } from 'src/location/entities/area.entity';
 import { Favorite } from './entities/favorite.entity';
+import { join } from 'path';
 
 @Injectable()
 export class PlanService {
@@ -134,7 +135,7 @@ export class PlanService {
     }
 
     const imageName = this.utilsService.getUUID();
-    const ext = file ? file.originalname.split('.').pop() : 'png';
+    const ext = join(file.originalname).split('.').pop()
 
     if (ext) {
       imageUrl = await this.awsService.imageUploadToS3(
@@ -273,7 +274,7 @@ export class PlanService {
     }
 
     const imageName = this.utilsService.getUUID();
-    const ext = file ? file.originalname.split('.').pop() : 'png';
+    const ext = join(file.originalname).split('.').pop()
 
     if (ext) {
       imageUrl = await this.awsService.imageUploadToS3(
