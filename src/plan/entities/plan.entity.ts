@@ -70,7 +70,6 @@ export class Plan {
   category: Category[];
 
   @ManyToOne(() => User, (user) => user.plan, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userId' })
   user: User;
 
   @OneToMany(() => Favorite, (favorite) => favorite.plan)
