@@ -44,13 +44,11 @@ export class PlanController {
     @Param('id') id: number,
     @Body() pickPlanDto: PickPlanDto,
     @UserInfo() user: User,
-    @UploadedFile() file: Express.Multer.File,
   ) {
     const createPlan = await this.planService.createpassive(
       id,
       pickPlanDto,
-      user,
-      file,
+      user
     );
 
     return createPlan;
