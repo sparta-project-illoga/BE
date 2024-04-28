@@ -126,28 +126,37 @@ export class PlanService {
     // placecode는 areacode를 검색하기 위해 사용한다
     const { name, category, placecode, money, date } = pickPlanDto;
 
-    let imageUrl = plan.image;
+    // let imageUrl = plan.image;
 
-    if (file) {
-      if (plan.image !== null) {
-        await this.awsService.deleteUploadToS3(plan.image);
-      }
-    }
+    // if (file) {
+    //   if (plan.image !== null) {
+    //     await this.awsService.deleteUploadToS3(plan.image);
+    //   } else {
 
-    const imageName = this.utilsService.getUUID();
-    const ext = join(file.originalname).split('.').pop()
+    //   }
+    // }
 
-    if (ext) {
-      imageUrl = await this.awsService.imageUploadToS3(
-        `${imageName}.${ext}`,
-        file,
-        ext,
-      );
-    }
+    console.log("plan : ", plan);
+    console.log("received plan.image : ", plan.image);
+    console.log("Received file:", file);
+    console.log("placecode : ", placecode);
+
+    // const imageName = this.utilsService.getUUID();
+    // const ext = join(file.originalname).split('.').pop();
+
+    // if (ext) {
+    //   imageUrl = await this.awsService.imageUploadToS3(
+    //     `${imageName}.${ext}`,
+    //     file,
+    //     ext,
+    //   );
+    // }
 
     const SpotAreacode = await this.placeRepository.findOne({
       where: { areacode: placecode },
     });
+
+    console.log("areacode : ", SpotAreacode.areacode);
 
     // 플랜 자동 생성 검색
     const AllPlacePlan = await this.placeRepository.find({
@@ -233,7 +242,7 @@ export class PlanService {
       { id },
       {
         name,
-        image: `${imageName}.${ext}`,
+        // image: `${imageName}.${ext}`,
         totaldate: lastScehdule.date,
         totalmoney,
         type: PlanType.Auto,
@@ -274,7 +283,7 @@ export class PlanService {
     }
 
     const imageName = this.utilsService.getUUID();
-    const ext = join(file.originalname).split('.').pop()
+    const ext = join(file.originalname).split('.').pop();
 
     if (ext) {
       imageUrl = await this.awsService.imageUploadToS3(
@@ -424,29 +433,29 @@ export class PlanService {
   // 플랜 조회 (좋아요 내림차순)
   async popularPlans() {
     const plans = await this.planRepository
-    .createQueryBuilder('plan')
-    .where('plan.totaldate IS NOT NULL AND plan.totalmoney IS NOT NULL')
-    .where('plan.favoriteCount > 0')
-    .orderBy('plan.favoriteCount', 'DESC')
-    .getMany();
-    
+      .createQueryBuilder('plan')
+      .where('plan.totaldate IS NOT NULL AND plan.totalmoney IS NOT NULL')
+      .where('plan.favoriteCount > 0')
+      .orderBy('plan.favoriteCount', 'DESC')
+      .getMany();
+
     if (!plans || plans.length === 0) {
       throw new NotFoundException('플랜이 없습니다');
     }
-    
+
     return plans;
   }
   // 좋아요 상태조회
-    async getFavoriteStatus(user: User, planId: number) {
-      const plan = await this.planRepository.findOneBy({ id: planId });
-      if (!plan) {
-        throw new BadRequestException(`${planId}번 플랜을 찾을 수 없습니다.`);
-      }
-  
-      const existingFavorite = await this.favoriteRepository.findOne({
-        where: { user: { id: user.id }, plan: { id: planId } },
-      });
-  
-      return { isFavorite: !!existingFavorite };
+  async getFavoriteStatus(user: User, planId: number) {
+    const plan = await this.planRepository.findOneBy({ id: planId });
+    if (!plan) {
+      throw new BadRequestException(`${planId}번 플랜을 찾을 수 없습니다.`);
+    }
+
+    const existingFavorite = await this.favoriteRepository.findOne({
+      where: { user: { id: user.id }, plan: { id: planId } },
+    });
+
+    return { isFavorite: !!existingFavorite };
   }
 }
