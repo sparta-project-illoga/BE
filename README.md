@@ -1,7 +1,7 @@
 ## illoga (일로가)
 
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
+  <img src="https://file.notion.so/f/f/83c75a39-3aba-4ba4-a792-7aefe4b07895/cd3747fe-4d4d-44a7-bee6-3e044cb280cd/_9899f63f-3c94-4a28-9bea-7b4b9beccec8.jpg?id=b981c25a-93ca-4771-affd-3315683b4673&table=block&spaceId=83c75a39-3aba-4ba4-a792-7aefe4b07895&expirationTimestamp=1714636800000&signature=AyJtz2WjxIEAFJBok6O8xRplBIC9EGH_pcxBLpsdZIs&downloadName=_9899f63f-3c94-4a28-9bea-7b4b9beccec8.jpg" width="200" alt="Nest Logo" /></a>
 </p>
 
 [circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
