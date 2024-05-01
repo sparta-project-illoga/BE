@@ -1,32 +1,27 @@
 ## illoga (일로가)
 
 <p align="center">
-  <img src="https://file.notion.so/f/f/83c75a39-3aba-4ba4-a792-7aefe4b07895/cd3747fe-4d4d-44a7-bee6-3e044cb280cd/_9899f63f-3c94-4a28-9bea-7b4b9beccec8.jpg?id=b981c25a-93ca-4771-affd-3315683b4673&table=block&spaceId=83c75a39-3aba-4ba4-a792-7aefe4b07895&expirationTimestamp=1714636800000&signature=AyJtz2WjxIEAFJBok6O8xRplBIC9EGH_pcxBLpsdZIs&downloadName=_9899f63f-3c94-4a28-9bea-7b4b9beccec8.jpg" width="200" alt="Nest Logo" /></a>
+  <img src="https://file.notion.so/f/f/83c75a39-3aba-4ba4-a792-7aefe4b07895/cd3747fe-4d4d-44a7-bee6-3e044cb280cd/_9899f63f-3c94-4a28-9bea-7b4b9beccec8.jpg?id=b981c25a-93ca-4771-affd-3315683b4673&table=block&spaceId=83c75a39-3aba-4ba4-a792-7aefe4b07895&expirationTimestamp=1714636800000&signature=AyJtz2WjxIEAFJBok6O8xRplBIC9EGH_pcxBLpsdZIs&downloadName=_9899f63f-3c94-4a28-9bea-7b4b9beccec8.jpg" width="400" alt="illoga Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+<div align="center">
+  <a href="https://illoga.store/">
+    <img src="https://file.notion.so/f/f/83c75a39-3aba-4ba4-a792-7aefe4b07895/cd3747fe-4d4d-44a7-bee6-3e044cb280cd/_9899f63f-3c94-4a28-9bea-7b4b9beccec8.jpg?id=b981c25a-93ca-4771-affd-3315683b4673&table=block&spaceId=83c75a39-3aba-4ba4-a792-7aefe4b07895&expirationTimestamp=1714636800000&signature=AyJtz2WjxIEAFJBok6O8xRplBIC9EGH_pcxBLpsdZIs&downloadName=_9899f63f-3c94-4a28-9bea-7b4b9beccec8.jpg" width="90px" alt="Site Logo" />
+  </a>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://www.notion.so/teamsparta/illoga-d985f4411d694774bace7b83722dc16e?pvs=4">
+    <img src="https://camo.githubusercontent.com/8d237e7d7ba690deb35eca1765cb47779a080471efb16ef76672aca7b7c26a9f/68747470733a2f2f63646e2d69636f6e732d706e672e666c617469636f6e2e636f6d2f3531322f323632382f323632383835392e706e67" width="90px" alt="Brochure Logo" />
+  </a>
+</div>
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+<div align="center">
+  <span>사이트 바로가기</span>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <span>illoga 브로셔</span>
+</div>
 
-## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 프로젝트 소개
 
 ## Installation
 
