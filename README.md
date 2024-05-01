@@ -52,6 +52,140 @@
 
 <br>
 
+## 기능 소개
+
+<br>
+
+<details>
+<summary>플랜 직접 생성</summary>
+
+<br>
+
+- 사용자는 원하는 여행 계획을 직접 생성할 수 있습니다.
+- 원하는 카테고리 추가하고 멤버를 초대하여 나만의 플랜을 만들수 있습니다
+
+<br>
+
+<img src="https://github.com/sparta-project-illoga/FE/assets/101691327/5b1f351b-5695-4086-9107-6784f9089205" width="500px"/>
+
+<br>
+
+</details>
+
+<details>
+<summary>플랜 추천 생성</summary>
+
+<br>
+
+ - 특정 조건에 따라 추천된 여행 계획을 생성할 수 있습니다. 사용자는 원하는 지역, 예산, 일정을 선택하면 시스템이 추천 플랜을 제안합니다.
+
+<br>
+
+<img src="https://github.com/sparta-project-illoga/FE/assets/101691327/9a568f8e-f68a-4bf9-adc1-a81d31b52df1" width="500px"/>
+
+<br>
+
+</details>
+
+<details>
+<summary>스케줄 생성</summary>
+
+<br>
+  
+ - 사용자는 다양한 장소과 일정을 스케줄로 생성할 수 있습니다. 각 스케줄을 기반으로 여행 계획을 세울 수 있으며 생성한 스케줄은 플랜에 반영됩니다.
+
+<br>
+
+<img src="https://github.com/sparta-project-illoga/FE/assets/101691327/94c8bf99-c3a6-4968-936e-3b7e80f0dd6c" width="900px"/>
+
+<br>
+
+</details>
+
+<details>
+<summary>지역 정보</summary>
+
+<br>
+
+- 각 지역의 음식점, 관광 명소, 박물관 등을 검색할 수 있습니다
+
+<img src="https://github.com/sparta-project-illoga/FE/assets/101691327/46c1012b-215a-417a-8cc7-de7b7b385e3c" width= "900px" />
+
+<br>
+
+</details>
+
+<details>
+
+<summary>지역 게시판</summary>
+
+<br>
+
+- 사용자는 지역 게시판을 통해 자신이 현재 위치하는 지역에 대한 정보를 알리, 다른 사용자와 소통할 수 있습니다. 게시판을 통해 여행 팁과 추천 장소를 공유할 수 있습니다.
+
+<br>
+
+<img src="https://github.com/sparta-project-illoga/FE/assets/101691327/6e7a6332-a8c0-4c78-9e7e-4bb412c9120e" width= "600px" />
+
+<br>
+
+<br>
+
+<img src="https://github.com/sparta-project-illoga/FE/assets/101691327/179a1523-2044-4e8b-8577-b1bc0752ee99" width= "600px" />
+
+<br>
+
+</details>
+
+<details>
+<summary>유저 페이지</summary>
+
+<br>
+  
+- 각 사용자는 개인 페이지에서 자신의 프로필을 관리하고, 지역 인증을 할 수 있습니다.
+
+<br>
+
+<img src="https://github.com/sparta-project-illoga/FE/assets/101691327/5748b2c7-f80b-453d-89db-df83a07cc206" width= "600px" />
+
+<br>
+
+</details>
+
+<details>
+<summary>내 플랜 및 채팅방 조회</summary>
+
+<br>
+
+- 사용자는 자신이 생성한 플랜과 참여 중인 채팅방을 조회할 수 있습니다. 각 채팅방에서 다른 사용자와 실시간으로 대화할 수 있습니다.
+
+<br>
+
+<img src="https://github.com/sparta-project-illoga/FE/assets/101691327/b1b15b4f-3023-4461-9596-868e9961a3ee" width= "600px" />
+
+<br>
+
+</details>
+
+<details>
+<summary>채팅방</summary>
+
+<br>
+
+채팅방에서는 사용자 간의 실시간 채팅이 가능합니다. 각 플랜마다 고유한 채팅방이 생성되며, 친구들과 여행 계획을 논의하거나 의견을 나눌 수 있습니다.
+
+<br>
+
+<img src="https://github.com/sparta-project-illoga/FE/assets/101691327/4475a1c2-2def-45d1-a335-af5ce08c34b9" width= "400px" />
+
+<br>
+
+
+</details>
+
+
+<br>
+
 ## 프로젝트 멤버
 
 ### 김진성 ([🔗 깃허브](https://github.com/jskim4695))
