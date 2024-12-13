@@ -209,7 +209,7 @@
 - 프론트엔드 Plan, Profile, Category, Member, myplan 페이지 커스텀
 
 🪄 **사용 기술**
-| Nest.js | Redis | S3 Bucket | React |
+| Nest.js | Redis | S3 Bucket |
 
 <br>
 
